@@ -689,10 +689,10 @@ if __name__ == '__main__':
     tcpSerSock.bind(ADDR)
     tcpSerSock.listen(5)                      #Start server,waiting for client
 
-    camera = picamera.PiCamera()              #Camera initialization
-    camera.resolution = (640, 480)
-    camera.framerate = 7
-    rawCapture = PiRGBArray(camera, size=(640, 480))
+#    camera = picamera.PiCamera()              #Camera initialization
+#    camera.resolution = (640, 480)
+#    camera.framerate = 7
+#    rawCapture = PiRGBArray(camera, size=(640, 480))
 
     colorLower = (24, 100, 100)               #The color that openCV find
     colorUpper = (44, 255, 255)               #USE HSV value NOT RGB
@@ -732,6 +732,6 @@ if __name__ == '__main__':
             time.sleep(5)
             print('shutdown')
         colorWipe(strip, Color(0,0,0))
-        camera=picamera.PiCamera()
-        camera.close()
+        #camera=picamera.PiCamera()
+        #camera.close()
         destroy()
