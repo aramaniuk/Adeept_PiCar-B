@@ -613,13 +613,13 @@ def run():                   #Main loop
 
         elif 'l_le' in data:                   #Camera look left
             if hoz_mid< look_left_max:
-                hoz_mid+=turn_speed
+                hoz_mid-=turn_speed
             turn.ultra_turn(hoz_mid)
             tcpCliSock.send('7'.encode())
 
         elif 'l_ri' in data:                   #Camera look right
             if hoz_mid> look_right_max:
-                hoz_mid-=turn_speed
+                hoz_mid+=turn_speed
             turn.ultra_turn(hoz_mid)
             tcpCliSock.send('8'.encode())
 
