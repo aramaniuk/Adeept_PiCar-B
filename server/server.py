@@ -628,6 +628,8 @@ def run():                   #Main loop
 
         elif 'ahead' in data:                  #Camera look ahead
             turn.ahead()
+            hoz_mid = hoz_mid_orig
+            vtr_mid = vtr_mid_orig
 
         elif 'Stop' in data:                   #When server receive "Stop" from client,Auto Mode switches off
             opencv_mode   = 0
