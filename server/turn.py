@@ -67,6 +67,6 @@ def camera_turn(vtr_mid):
     pwm.set_pwm(0, 0, vtr_mid)
 
 def ahead():
-    print('x=%d y=%d'%(hoz_mid_orig, vtr_mid_orig))
+    print('x=%d y=%d' %(hoz_mid_orig, vtr_mid_orig))
 	pwm.set_pwm(1, 0, hoz_mid_orig)
 	pwm.set_pwm(0, 0, vtr_mid_orig)
