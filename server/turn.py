@@ -43,6 +43,7 @@ pwm = Adafruit_PCA9685.PCA9685()
 pwm.set_pwm_freq(60)
 
 def turn_ang(ang):
+    print('ang %s; right max x %s; left max y %s' % (ang, turn_right_max, turn_left_max))
     if ang < turn_right_max:
         ang = turn_right_max
     elif ang > turn_left_max:
