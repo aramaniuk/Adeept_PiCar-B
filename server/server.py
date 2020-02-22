@@ -456,9 +456,9 @@ def run():                   #Main loop
     footage_socket.connect('tcp://%s:5555'%addr[0])
     print(addr[0])
     #Threads start
-    video_threading=threading.Thread(target=opencv_thread)      #Define a thread for FPV and OpenCV
-    video_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
-    video_threading.start()                                     #Thread starts
+    #video_threading=threading.Thread(target=opencv_thread)      #Define a thread for FPV and OpenCV
+    #video_threading.setDaemon(True)                             #'True' means it is a front thread,it would close when the mainloop() closes
+    #video_threading.start()                                     #Thread starts
 
     ws2812_threading=threading.Thread(target=ws2812_thread)     #Define a thread for ws_2812 leds
     ws2812_threading.setDaemon(True)                            #'True' means it is a front thread,it would close when the mainloop() closes
