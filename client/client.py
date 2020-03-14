@@ -7,66 +7,34 @@
 # E-mail      : support@adeept.com
 # Author      : William
 # Date        : 2018/12/18
-from socket import *
-import sys,subprocess
-import time
-import threading as thread
-import tkinter as tk
-import math
-import speech_recognition as sr
-import cv2
-import zmq
 import base64
+import math
+import threading as thread
+import time
+import tkinter as tk
+from socket import *
+from tkinter import ttk
+import vars
+from vars import SR_mode,led_status,ipcon,findline_status,auto_status,\
+    ADDR,tcpClicSock,BUFSIZ,ip_stu,ipaddr,mainloop_status,\
+    opencv_status,speech_status,TestMode,\
+    c_f_stu,c_b_stu,c_l_stu,c_r_stu,b_l_stu,b_r_stu,l_stu,r_stu
+
+# import speech_recognition as sr
+import cv2
 import numpy as np
+import zmq
 
-color_bg='#000000'        #Set background color
-color_text='#E1F5FE'      #Set text color
-color_btn='#212121'       #Set button color
-color_line='#01579B'      #Set line color
-color_can='#212121'       #Set canvas color
-color_oval='#2196F3'      #Set oval color
-target_color='#FF6D00'
 
-a2t=''
-TestMode = 0
-
-stat=0          #A status value,ensure the mainloop() runs only once
-tcpClicSock=''  #A global variable,for future socket connection
-BUFSIZ=1024     #Set a buffer size
-ip_stu=1        #Shows connection status
-
-#Global variables of input status
-c_f_stu=0
-c_b_stu=0
-c_l_stu=0
-c_r_stu=0
-
-b_l_stu=0
-b_r_stu=0
-
-l_stu=0
-r_stu=0
-
-BtnIP=''
-ipaddr=''
-
-led_status      = 0
-opencv_status   = 0
-auto_status     = 0
-speech_status   = 0
-findline_status = 0
-
-ipcon=0
-SR_mode=0
 
 def video_show():
-    while True:
+     while True:
         frame = footage_socket.recv_string()
         img = base64.b64decode(frame)
         npimg = np.fromstring(img, dtype=np.uint8)
         source = cv2.imdecode(npimg, 1)
         cv2.imshow("Stream", source)
-        cv2.waitKey(1)                
+        cv2.waitKey(1)
 
 def call_forward(event):         #When this function is called,client commands the car to move forward
     global c_f_stu
@@ -189,20 +157,20 @@ def call_opencv():                  #Start OpenCV mode
 
 def voice_input():
     global a2t
-    r = sr.Recognizer()
-    with sr.Microphone() as source:
-        #r.adjust_for_ambient_noise(source)
-        r.record(source,duration=2)
-        print("Say something!")
-        audio = r.listen(source)
-    try:
-        a2t=r.recognize_sphinx(audio,keyword_entries=[('forward',1.0),('backward',1.0),('left',1.0),('right',1.0),('stop',1.0),('find line',0.95),('follow',1),('lights on',1),('lights off',1)])
-        print("Sphinx thinks you said " + a2t)
-    except sr.UnknownValueError:
-        print("Sphinx could not understand audio")
-    except sr.RequestError as e:
-        print("Sphinx error; {0}".format(e))
-    BtnVIN.config(fg=color_text,bg=color_btn)
+    # r = sr.Recognizer()
+    # with sr.Microphone() as source:
+    #     #r.adjust_for_ambient_noise(source)
+    #     r.record(source,duration=2)
+    #     print("Say something!")
+    #     audio = r.listen(source)
+    # try:
+    #     a2t=r.recognize_sphinx(audio,keyword_entries=[('forward',1.0),('backward',1.0),('left',1.0),('right',1.0),('stop',1.0),('find line',0.95),('follow',1),('lights on',1),('lights off',1)])
+    #     print("Sphinx thinks you said " + a2t)
+    # except sr.UnknownValueError:
+    #     print("Sphinx could not understand audio")
+    # except sr.RequestError as e:
+    #     print("Sphinx error; {0}".format(e))
+    # BtnVIN.config(fg=vars.color_text,bg=vars.color_btn)
     return a2t
 
 def voice_command_thread():
@@ -244,7 +212,7 @@ def voice_command(event):
         SR_mode = 1
         BtnVIN.config(fg='#0277BD',bg='#BBDEFB')
     else:
-        BtnVIN.config(fg=color_text,bg=color_btn)
+        BtnVIN.config(fg=vars.color_text,bg=vars.color_btn)
         SR_mode = 0
 
 
@@ -253,8 +221,8 @@ def loop():                       #GUI
     while True:
         root = tk.Tk()            #Define a window named root
         root.title('Adeept')      #Main window title
-        root.geometry('917x630')  #Main window size, middle of the English letter x.
-        root.config(bg=color_bg)  #Set the background color of root window
+        root.geometry('950x630')  #Main window size, middle of the English letter x.
+        root.config(bg=vars.color_bg)  #Set the background color of root window
     
         var_spd = tk.StringVar()  #Speed value saved in a StringVar
         var_spd.set(1)            #Set a default speed,but change it would not change the default speed value in the car,you need to click button'Set' to send the value to the car
@@ -262,50 +230,51 @@ def loop():                       #GUI
         var_x_scan = tk.IntVar()  #Scan range value saved in a IntVar
         var_x_scan.set(2)         #Set a default scan value
 
-        logo =tk.PhotoImage(file = 'logo.png')         #Define the picture of logo,but only supports '.png' and '.gif'
-        l_logo=tk.Label(root,image = logo,bg=color_bg) #Set a label to show the logo picture
-        l_logo.place(x=30,y=13)                        #Place the Label in a right position
+        #logo =tk.PhotoImage(file = 'logo.png')         #Define the picture of logo,but only supports '.png' and '.gif'
+        #l_logo=tk.Label(root,image = logo,bg=vars.color_bg) #Set a label to show the logo picture
+        #l_logo.place(x=30,y=13)                        #Place the Label in a right position
 
-        BtnC1 = tk.Button(root, width=15, text='Camera Middle',fg=color_text,bg=color_btn,relief='ridge')
+        #BtnC1 = tk.Button(root, width=15, text='Camera Middle',fg=vars.color_text,bg=vars.color_btn,relief='ridge')
+        BtnC1 = ttk.Button(root, width=15, text='Camera Middle')
         BtnC1.place(x=785,y=10)
         E_C1 = tk.Entry(root,show=None,width=16,bg="#37474F",fg='#eceff1',exportselection=0,justify='center')
         E_C1.place(x=785,y=45)                             #Define a Entry and put it in position
 
-        BtnC2 = tk.Button(root, width=15, text='Ultrasonic Middle',fg=color_text,bg=color_btn,relief='ridge')
+        BtnC2 = ttk.Button(root, width=15, text='Ultrasonic Middle')
         BtnC2.place(x=785,y=100)
         E_C2 = tk.Entry(root,show=None,width=16,bg="#37474F",fg='#eceff1',exportselection=0,justify='center')
         E_C2.place(x=785,y=135)                             #Define a Entry and put it in position
 
-        BtnM1 = tk.Button(root, width=15, text='Motor A Speed',fg=color_text,bg=color_btn,relief='ridge')
+        BtnM1 = ttk.Button(root, width=15, text='Motor A Speed')
         BtnM1.place(x=785,y=190)
         E_M1 = tk.Entry(root,show=None,width=16,bg="#37474F",fg='#eceff1',exportselection=0,justify='center')
         E_M1.place(x=785,y=225)                             #Define a Entry and put it in position
 
-        BtnM2 = tk.Button(root, width=15, text='Motor B Speed',fg=color_text,bg=color_btn,relief='ridge')
+        BtnM2 = ttk.Button(root, width=15, text='Motor B Speed')
         BtnM2.place(x=785,y=280)
         E_M2 = tk.Entry(root,show=None,width=16,bg="#37474F",fg='#eceff1',exportselection=0,justify='center')
         E_M2.place(x=785,y=315)                             #Define a Entry and put it in position
 
-        BtnT1 = tk.Button(root, width=15, text='Look Up Max',fg=color_text,bg=color_btn,relief='ridge')
+        BtnT1 = ttk.Button(root, width=15, text='Look Up Max')
         BtnT1.place(x=785,y=370)
         E_T1 = tk.Entry(root,show=None,width=16,bg="#37474F",fg='#eceff1',exportselection=0,justify='center')
         E_T1.place(x=785,y=405)                             #Define a Entry and put it in position
 
-        BtnT2 = tk.Button(root, width=15, text='Look Down Max',fg=color_text,bg=color_btn,relief='ridge')
+        BtnT2 = ttk.Button(root, width=15, text='Look Down Max')
         BtnT2.place(x=785,y=460)
         E_T2 = tk.Entry(root,show=None,width=16,bg="#37474F",fg='#eceff1',exportselection=0,justify='center')
         E_T2.place(x=785,y=495)                             #Define a Entry and put it in position
 
-        BtnLED = tk.Button(root, width=15, text='Lights ON',fg=color_text,bg=color_btn,relief='ridge')
+        BtnLED = ttk.Button(root, width=15, text='Lights ON')
         BtnLED.place(x=300,y=420)
 
-        BtnOCV = tk.Button(root, width=15, text='OpenCV',fg=color_text,bg=color_btn,relief='ridge',command=call_opencv)
+        BtnOCV = ttk.Button(root, width=15, text='OpenCV',command=call_opencv)
         BtnOCV.place(x=30,y=420)
 
-        BtnFL = tk.Button(root, width=15, text='Find Line',fg=color_text,bg=color_btn,relief='ridge')
+        BtnFL = ttk.Button(root, width=15, text='Find Line')
         BtnFL.place(x=165,y=420)
 
-        BtnSR3 = tk.Button(root, width=15, text='Sphinx SR',fg=color_text,bg=color_btn,relief='ridge',command=call_SR3)
+        BtnSR3 = ttk.Button(root, width=15, text='Sphinx SR',command=call_SR3)
         BtnSR3.place(x=300,y=495)
 
         E_C1.insert ( 0, 'Default:425' ) 
@@ -315,7 +284,7 @@ def loop():                       #GUI
         E_T1.insert ( 0, 'Default:662' ) 
         E_T2.insert ( 0, 'Default:295' )
 
-        can_scan = tk.Canvas(root,bg=color_can,height=250,width=320,highlightthickness=0) #define a canvas
+        can_scan = tk.Canvas(root,bg=vars.color_can,height=250,width=320,highlightthickness=0) #define a canvas
         can_scan.place(x=440,y=330) #Place the canvas
         line = can_scan.create_line(0,62,320,62,fill='darkgray')   #Draw a line on canvas
         line = can_scan.create_line(0,124,320,124,fill='darkgray') #Draw a line on canvas
@@ -409,7 +378,7 @@ def loop():                       #GUI
                         video_thread=thread.Thread(target=video_show) #Define a thread for data receiving
                         video_thread.setDaemon(True)                    #'True' means it is a front thread,it would close when the mainloop() closes
                         print('Video Connected')
-                        video_thread.start()                            #Thread starts
+                        #video_thread.start()                            #Thread starts
 
                         ipaddr=tcpClicSock.getsockname()[0]
                         break
@@ -479,7 +448,7 @@ def loop():                       #GUI
                     dis_list=f_list
                     #can_scan.delete(line)
                     #can_scan.delete(point_scan)
-                    can_scan_1 = tk.Canvas(root,bg=color_can,height=250,width=320,highlightthickness=0) #define a canvas
+                    can_scan_1 = tk.Canvas(root,bg=vars.color_can,height=250,width=320,highlightthickness=0) #define a canvas
                     can_scan_1.place(x=440,y=330) #Place the canvas
                     line = can_scan_1.create_line(0,62,320,62,fill='darkgray')   #Draw a line on canvas
                     line = can_scan_1.create_line(0,124,320,124,fill='darkgray') #Draw a line on canvas
@@ -509,8 +478,8 @@ def loop():                       #GUI
 
                             y1_l = y1_l-abs(math.sin(math.radians(pos_ra))*130)              #Orientation of line
 
-                            line = can_scan_1.create_line(pos,y0_l,x1_l,y1_l,fill=color_line)   #Draw a line on canvas
-                            point_scan = can_scan_1.create_oval((pos+3),y0,(pos-3),y1,fill=color_oval,outline=color_oval) #Draw a arc on canvas
+                            line = can_scan_1.create_line(pos,y0_l,x1_l,y1_l,fill=vars.color_line)   #Draw a line on canvas
+                            point_scan = can_scan_1.create_oval((pos+3),y0,(pos-3),y1,fill=vars.color_oval,outline=vars.color_oval) #Draw a arc on canvas
                         except:
                             pass
                     can_tex_11=can_scan_1.create_text((27,178),text='%sm'%round((x_range/4),2),fill='#aeea00')     #Create a text on canvas
@@ -552,23 +521,23 @@ def loop():                       #GUI
                     l_ip.config(text='Lights On')        #Put the text on the label
                 
                 elif 'lightsOFF' in str(code_car):        #Translate the code to text
-                    BtnLED.config(text='Lights OFF',fg=color_text,bg=color_btn)
+                    BtnLED.config(text='Lights OFF',fg=vars.color_text,bg=vars.color_btn)
                     led_status=0
                     l_ip.config(text='Lights OFF')        #Put the text on the label
 
                 elif 'oncvon' in str(code_car):
                     if TestMode == 0:
                         BtnOCV.config(text='OpenCV ON',fg='#0277BD',bg='#BBDEFB')
-                        BtnFL.config(text='Find Line',fg=color_text,bg=color_btn)
+                        BtnFL.config(text='Find Line',fg=vars.color_text,bg=vars.color_btn)
                         l_ip.config(text='OpenCV ON')
                         opencv_status = 1
 
                 elif 'auto_status_off' in str(code_car):
                     if TestMode == 0:
-                        BtnSR3.config(fg=color_text,bg=color_btn,state='normal')
-                        BtnOCV.config(text='OpenCV',fg=color_text,bg=color_btn,state='normal')
-                    BtnFL.config(text='Find Line',fg=color_text,bg=color_btn)
-                    Btn5.config(text='Follow',fg=color_text,bg=color_btn,state='normal')
+                        BtnSR3.config(fg=vars.color_text,bg=vars.color_btn,state='normal')
+                        BtnOCV.config(text='OpenCV',fg=vars.color_text,bg=vars.color_btn,state='normal')
+                    BtnFL.config(text='Find Line',fg=vars.color_text,bg=vars.color_btn)
+                    Btn5.config(text='Follow',fg=vars.color_text,bg=vars.color_btn,state='normal')
                     findline_status = 0
                     speech_status   = 0
                     opencv_status   = 0
@@ -588,24 +557,24 @@ def loop():                       #GUI
 
         s1 = tk.Scale(root,label="               < Slow   Speed Adjustment   Fast >",
         from_=0.4,to=1,orient=tk.HORIZONTAL,length=400,
-        showvalue=0.1,tickinterval=0.1,resolution=0.2,variable=var_spd,fg=color_text,bg=color_bg,highlightthickness=0)
+        showvalue=0.1,tickinterval=0.1,resolution=0.2,variable=var_spd,fg=vars.color_text,bg=vars.color_bg,highlightthickness=0)
         s1.place(x=200,y=100)                            #Define a Scale and put it in position
 
         s3 = tk.Scale(root,label="< Near   Scan Range Adjustment(Meter(s))   Far >",
         from_=1,to=5,orient=tk.HORIZONTAL,length=300,
-        showvalue=1,tickinterval=1,resolution=1,variable=var_x_scan,fg=color_text,bg=color_bg,highlightthickness=0)
+        showvalue=1,tickinterval=1,resolution=1,variable=var_x_scan,fg=vars.color_text,bg=vars.color_bg,highlightthickness=0)
         s3.place(x=30,y=320)    
 
-        l_ip=tk.Label(root,width=18,text='Status',fg=color_text,bg=color_btn)
+        l_ip=tk.Label(root,width=18,text='Status',fg=vars.color_text,bg=vars.color_btn)
         l_ip.place(x=30,y=110)                           #Define a Label and put it in position
 
-        l_ip_2=tk.Label(root,width=18,text='Speed:%s'%(var_spd.get()),fg=color_text,bg=color_btn)
+        l_ip_2=tk.Label(root,width=18,text='Speed:%s'%(var_spd.get()),fg=vars.color_text,bg=vars.color_btn)
         l_ip_2.place(x=30,y=145)                         #Define a Label and put it in position
 
-        l_ip_4=tk.Label(root,width=18,text='Disconnected',fg=color_text,bg='#F44336')
+        l_ip_4=tk.Label(root,width=18,text='Disconnected',fg=vars.color_text,bg='#F44336')
         l_ip_4.place(x=637,y=110)                         #Define a Label and put it in position
 
-        l_ip_5=tk.Label(root,width=18,text='Use default IP',fg=color_text,bg=color_btn)
+        l_ip_5=tk.Label(root,width=18,text='Use default IP',fg=vars.color_text,bg=vars.color_btn)
         l_ip_5.place(x=637,y=145)                         #Define a Label and put it in position
 
         l_inter=tk.Label(root,width=45,text='< Car Adjustment              Camera Adjustment>\nW:Move Forward                 Look Up:I\nS:Move Backward            Look Down:K\nA:Turn Left                          Turn Left:J\nD:Turn Right                      Turn Right:L\nZ:Auto Mode On          Look Forward:H\nC:Auto Mode Off      Ultrasdonic Scan:X' ,
@@ -615,35 +584,35 @@ def loop():                       #GUI
         E1 = tk.Entry(root,show=None,width=16,bg="#37474F",fg='#eceff1')
         E1.place(x=170,y=40)                             #Define a Entry and put it in position
 
-        l_ip_3=tk.Label(root,width=10,text='IP Address:',fg=color_text,bg='#000000')
+        l_ip_3=tk.Label(root,width=10,text='IP Address:',fg=vars.color_text,bg='#000000')
         l_ip_3.place(x=165,y=15)                         #Define a Label and put it in position
 
-        Btn14= tk.Button(root, width=8, text='Connect',fg=color_text,bg=color_btn,command=connect_2,relief='ridge')
-        Btn14.place(x=300,y=35)                          #Define a Button and put it in position
+        Btn14= ttk.Button(root, width=8, text='Connect', command=connect_2)
+        Btn14.place(x=315,y=40)                          #Define a Button and put it in position
 
-        BtnVIN = tk.Button(root, width=15, text='Voice Input',fg=color_text,bg=color_btn,relief='ridge')
+        BtnVIN = ttk.Button(root, width=15, text='Voice Input')
         BtnVIN.place(x=30,y=495)
 
-        l_VIN=tk.Label(root,width=16,text='Voice commands',fg=color_text,bg=color_btn)
+        l_VIN=tk.Label(root,width=16,text='Voice commands',fg=vars.color_text,bg=vars.color_btn)
         l_VIN.place(x=30,y=465)      
 
         #Define buttons and put these in position
-        Btn0 = tk.Button(root, width=8, text='Forward',fg=color_text,bg=color_btn,relief='ridge')
-        Btn1 = tk.Button(root, width=8, text='Backward',fg=color_text,bg=color_btn,relief='ridge')
-        Btn2 = tk.Button(root, width=8, text='Left',fg=color_text,bg=color_btn,relief='ridge')
-        Btn3 = tk.Button(root, width=8, text='Right',fg=color_text,bg=color_btn,relief='ridge')
-        Btn4 = tk.Button(root, width=8, text='Stop',fg=color_text,bg=color_btn,relief='ridge')
-        Btn5 = tk.Button(root, width=8, text='Follow',fg=color_text,bg=color_btn,relief='ridge')
+        Btn0 = ttk.Button(root, width=8, text='Forward')
+        Btn1 = ttk.Button(root, width=8, text='Backward')
+        Btn2 = ttk.Button(root, width=8, text='Left')
+        Btn3 = ttk.Button(root, width=8, text='Right')
+        Btn4 = ttk.Button(root, width=8, text='Stop')
+        Btn5 = ttk.Button(root, width=8, text='Follow')
         
-        Btn6 = tk.Button(root, width=8, text='Left',fg=color_text,bg=color_btn,relief='ridge')
-        Btn7 = tk.Button(root, width=8, text='Right',fg=color_text,bg=color_btn,relief='ridge')
-        Btn8 = tk.Button(root, width=8, text='Down',fg=color_text,bg=color_btn,relief='ridge')
-        Btn9 = tk.Button(root, width=8, text='Up',fg=color_text,bg=color_btn,relief='ridge')
-        Btn10 = tk.Button(root, width=8, text='Home',fg=color_text,bg=color_btn,relief='ridge')
-        Btn11 = tk.Button(root, width=8, text='Exit',fg=color_text,bg=color_btn,relief='ridge')
+        Btn6 = ttk.Button(root, width=8, text='Left')
+        Btn7 = ttk.Button(root, width=8, text='Right')
+        Btn8 = ttk.Button(root, width=8, text='Down')
+        Btn9 = ttk.Button(root, width=8, text='Up')
+        Btn10 = ttk.Button(root, width=8, text='Home')
+        Btn11 = ttk.Button(root, width=8, text='Exit')
 
-        Btn12 = tk.Button(root, width=8, text='Set',command=spd_set,fg=color_text,bg=color_btn,relief='ridge')
-        Btn13 = tk.Button(root, width=8,height=3, text='Scan',fg=color_text,bg=color_btn,relief='ridge')
+        Btn12 = ttk.Button(root, width=8, text='Set',command=spd_set)
+        Btn13 = ttk.Button(root, width=8, text='Scan')
 
         Btn0.place(x=100,y=195)
         Btn1.place(x=100,y=230)
@@ -722,10 +691,10 @@ def loop():                       #GUI
         root.bind('<Return>', connect)
         root.bind('<Shift_L>',call_stop)
         
-        global stat
-        if stat==0:              # Ensure the mainloop runs only once
+        global mainloop_status
+        if mainloop_status==0:              # Ensure the mainloop runs only once
                 root.mainloop()  # Run the mainloop()
-                stat=1           # Change the value to '1' so the mainloop() would not run again.
+                mainloop_status=1           # Change the value to '1' so the mainloop() would not run again.
 
 if __name__ == '__main__':
     opencv_socket = socket()
