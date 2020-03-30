@@ -12,20 +12,20 @@ import math
 import threading as thread
 import time
 import tkinter as tk
-from socket import *
 from tkinter import ttk
-import vars
+from socket import *
 from vars import SR_mode,led_status,ipcon,findline_status,auto_status,\
     ADDR,tcpClicSock,BUFSIZ,ip_stu,ipaddr,mainloop_status,\
     opencv_status,speech_status,TestMode,\
-    c_f_stu,c_b_stu,c_l_stu,c_r_stu,b_l_stu,b_r_stu,l_stu,r_stu
+    c_f_stu,c_b_stu,c_l_stu,c_r_stu,b_l_stu,b_r_stu,l_stu,r_stu,\
+    color_bg,color_text,color_btn,color_line,color_can,color_oval,target_color
+
+from mainform import MainForm
 
 # import speech_recognition as sr
 import cv2
 import numpy as np
 import zmq
-
-
 
 def video_show():
      while True:
@@ -170,7 +170,7 @@ def voice_input():
     #     print("Sphinx could not understand audio")
     # except sr.RequestError as e:
     #     print("Sphinx error; {0}".format(e))
-    # BtnVIN.config(fg=vars.color_text,bg=vars.color_btn)
+    # BtnVIN.config(fg=color_text,bg=color_btn)
     return a2t
 
 def voice_command_thread():
@@ -212,7 +212,7 @@ def voice_command(event):
         SR_mode = 1
         BtnVIN.config(fg='#0277BD',bg='#BBDEFB')
     else:
-        BtnVIN.config(fg=vars.color_text,bg=vars.color_btn)
+        BtnVIN.config(fg=color_text,bg=color_btn)
         SR_mode = 0
 
 
@@ -222,7 +222,7 @@ def loop():                       #GUI
         root = tk.Tk()            #Define a window named root
         root.title('Adeept')      #Main window title
         root.geometry('950x630')  #Main window size, middle of the English letter x.
-        root.config(bg=vars.color_bg)  #Set the background color of root window
+        root.config(bg=color_bg)  #Set the background color of root window
     
         var_spd = tk.StringVar()  #Speed value saved in a StringVar
         var_spd.set(1)            #Set a default speed,but change it would not change the default speed value in the car,you need to click button'Set' to send the value to the car
@@ -231,10 +231,10 @@ def loop():                       #GUI
         var_x_scan.set(2)         #Set a default scan value
 
         #logo =tk.PhotoImage(file = 'logo.png')         #Define the picture of logo,but only supports '.png' and '.gif'
-        #l_logo=tk.Label(root,image = logo,bg=vars.color_bg) #Set a label to show the logo picture
+        #l_logo=tk.Label(root,image = logo,bg=color_bg) #Set a label to show the logo picture
         #l_logo.place(x=30,y=13)                        #Place the Label in a right position
 
-        #BtnC1 = tk.Button(root, width=15, text='Camera Middle',fg=vars.color_text,bg=vars.color_btn,relief='ridge')
+        #BtnC1 = tk.Button(root, width=15, text='Camera Middle',fg=color_text,bg=color_btn,relief='ridge')
         BtnC1 = ttk.Button(root, width=15, text='Camera Middle')
         BtnC1.place(x=785,y=10)
         E_C1 = tk.Entry(root,show=None,width=16,bg="#37474F",fg='#eceff1',exportselection=0,justify='center')
@@ -284,7 +284,7 @@ def loop():                       #GUI
         E_T1.insert ( 0, 'Default:662' ) 
         E_T2.insert ( 0, 'Default:295' )
 
-        can_scan = tk.Canvas(root,bg=vars.color_can,height=250,width=320,highlightthickness=0) #define a canvas
+        can_scan = tk.Canvas(root,bg=color_can,height=250,width=320,highlightthickness=0) #define a canvas
         can_scan.place(x=440,y=330) #Place the canvas
         line = can_scan.create_line(0,62,320,62,fill='darkgray')   #Draw a line on canvas
         line = can_scan.create_line(0,124,320,124,fill='darkgray') #Draw a line on canvas
@@ -341,9 +341,9 @@ def loop():                       #GUI
                 l_ip_4.config(bg='#FF8F00')
                 l_ip_5.config(text='Default:%s'%ip_adr)
                 pass
-            
+
             SERVER_IP = ip_adr
-            SERVER_PORT = 10223   #Define port serial 
+            SERVER_PORT = 10223   #Define port serial
             BUFSIZ = 1024         #Define buffer size
             ADDR = (SERVER_IP, SERVER_PORT)
             tcpClicSock = socket(AF_INET, SOCK_STREAM) #Set connection value for socket
@@ -354,9 +354,9 @@ def loop():                       #GUI
                         print("Connecting to server @ %s:%d..." %(SERVER_IP, SERVER_PORT))
                         print("Connecting")
                         tcpClicSock.connect(ADDR)        #Connection with the server
-                    
+
                         print("Connected")
-                    
+
                         l_ip_5.config(text='IP:%s'%ip_adr)
                         l_ip_4.config(text='Connected')
                         l_ip_4.config(bg='#558B2F')
@@ -364,9 +364,9 @@ def loop():                       #GUI
                         replace_num('IP:',ip_adr)
                         E1.config(state='disabled')      #Disable the Entry
                         Btn14.config(state='disabled')   #Disable the Entry
-                    
+
                         ip_stu=0                         #'0' means connected
-                    
+
                         at=thread.Thread(target=code_receive) #Define a thread for data receiving
                         at.setDaemon(True)                    #'True' means it is a front thread,it would close when the mainloop() closes
                         at.start()                            #Thread starts
@@ -416,39 +416,39 @@ def loop():                       #GUI
                     E_T1.delete(0,50)
                     E_T2.delete(0,50)
 
-                    E_C1.insert ( 0, '%d'%int(s1) ) 
-                    E_C2.insert ( 0, '%d'%int(s2) ) 
-                    E_M1.insert ( 0, '%d'%int(s3) ) 
+                    E_C1.insert ( 0, '%d'%int(s1) )
+                    E_C2.insert ( 0, '%d'%int(s2) )
+                    E_M1.insert ( 0, '%d'%int(s3) )
                     E_M2.insert ( 0, '%d'%int(s4) )
-                    E_T1.insert ( 0, '%d'%int(s5) ) 
+                    E_T1.insert ( 0, '%d'%int(s5) )
                     E_T2.insert ( 0, '%d'%int(s6) )
 
                 elif 'list' in str(code_car):         #Scan result receiving start
                     dis_list=[]
                     f_list=[]
                     list_str=code_car.decode()
-                    
+
                     while  True:                    #Save scan result in dis_list
                         code_car = tcpClicSock.recv(BUFSIZ)
                         if 'finished' in str(code_car):
                             break
                         list_str+=code_car.decode()
                         l_ip.config(text='Scanning')
-                    
+
                     dis_list=list_str.split()       #Save the data as a list
                     l_ip.config(text='Finished')
-                    
+
                     for i in range (0,len(dis_list)):   #Translate the String-type value in the list to Float-type
                         try:
                             new_f=float(dis_list[i])
                             f_list.append(new_f)
                         except:
                             continue
-                    
+
                     dis_list=f_list
                     #can_scan.delete(line)
                     #can_scan.delete(point_scan)
-                    can_scan_1 = tk.Canvas(root,bg=vars.color_can,height=250,width=320,highlightthickness=0) #define a canvas
+                    can_scan_1 = tk.Canvas(root,bg=color_can,height=250,width=320,highlightthickness=0) #define a canvas
                     can_scan_1.place(x=440,y=330) #Place the canvas
                     line = can_scan_1.create_line(0,62,320,62,fill='darkgray')   #Draw a line on canvas
                     line = can_scan_1.create_line(0,124,320,124,fill='darkgray') #Draw a line on canvas
@@ -478,8 +478,8 @@ def loop():                       #GUI
 
                             y1_l = y1_l-abs(math.sin(math.radians(pos_ra))*130)              #Orientation of line
 
-                            line = can_scan_1.create_line(pos,y0_l,x1_l,y1_l,fill=vars.color_line)   #Draw a line on canvas
-                            point_scan = can_scan_1.create_oval((pos+3),y0,(pos-3),y1,fill=vars.color_oval,outline=vars.color_oval) #Draw a arc on canvas
+                            line = can_scan_1.create_line(pos,y0_l,x1_l,y1_l,fill=color_line)   #Draw a line on canvas
+                            point_scan = can_scan_1.create_oval((pos+3),y0,(pos-3),y1,fill=color_oval,outline=color_oval) #Draw a arc on canvas
                         except:
                             pass
                     can_tex_11=can_scan_1.create_text((27,178),text='%sm'%round((x_range/4),2),fill='#aeea00')     #Create a text on canvas
@@ -521,23 +521,23 @@ def loop():                       #GUI
                     l_ip.config(text='Lights On')        #Put the text on the label
                 
                 elif 'lightsOFF' in str(code_car):        #Translate the code to text
-                    BtnLED.config(text='Lights OFF',fg=vars.color_text,bg=vars.color_btn)
+                    BtnLED.config(text='Lights OFF',fg=color_text,bg=color_btn)
                     led_status=0
                     l_ip.config(text='Lights OFF')        #Put the text on the label
 
                 elif 'oncvon' in str(code_car):
                     if TestMode == 0:
                         BtnOCV.config(text='OpenCV ON',fg='#0277BD',bg='#BBDEFB')
-                        BtnFL.config(text='Find Line',fg=vars.color_text,bg=vars.color_btn)
+                        BtnFL.config(text='Find Line',fg=color_text,bg=color_btn)
                         l_ip.config(text='OpenCV ON')
                         opencv_status = 1
 
                 elif 'auto_status_off' in str(code_car):
                     if TestMode == 0:
-                        BtnSR3.config(fg=vars.color_text,bg=vars.color_btn,state='normal')
-                        BtnOCV.config(text='OpenCV',fg=vars.color_text,bg=vars.color_btn,state='normal')
-                    BtnFL.config(text='Find Line',fg=vars.color_text,bg=vars.color_btn)
-                    Btn5.config(text='Follow',fg=vars.color_text,bg=vars.color_btn,state='normal')
+                        BtnSR3.config(fg=color_text,bg=color_btn,state='normal')
+                        BtnOCV.config(text='OpenCV',fg=color_text,bg=color_btn,state='normal')
+                    BtnFL.config(text='Find Line',fg=color_text,bg=color_btn)
+                    Btn5.config(text='Follow',fg=color_text,bg=color_btn,state='normal')
                     findline_status = 0
                     speech_status   = 0
                     opencv_status   = 0
@@ -557,24 +557,24 @@ def loop():                       #GUI
 
         s1 = tk.Scale(root,label="               < Slow   Speed Adjustment   Fast >",
         from_=0.4,to=1,orient=tk.HORIZONTAL,length=400,
-        showvalue=0.1,tickinterval=0.1,resolution=0.2,variable=var_spd,fg=vars.color_text,bg=vars.color_bg,highlightthickness=0)
+        showvalue=0.1,tickinterval=0.1,resolution=0.2,variable=var_spd,fg=color_text,bg=color_bg,highlightthickness=0)
         s1.place(x=200,y=100)                            #Define a Scale and put it in position
 
         s3 = tk.Scale(root,label="< Near   Scan Range Adjustment(Meter(s))   Far >",
         from_=1,to=5,orient=tk.HORIZONTAL,length=300,
-        showvalue=1,tickinterval=1,resolution=1,variable=var_x_scan,fg=vars.color_text,bg=vars.color_bg,highlightthickness=0)
+        showvalue=1,tickinterval=1,resolution=1,variable=var_x_scan,fg=color_text,bg=color_bg,highlightthickness=0)
         s3.place(x=30,y=320)    
 
-        l_ip=tk.Label(root,width=18,text='Status',fg=vars.color_text,bg=vars.color_btn)
+        l_ip=tk.Label(root,width=18,text='Status',fg=color_text,bg=color_btn)
         l_ip.place(x=30,y=110)                           #Define a Label and put it in position
 
-        l_ip_2=tk.Label(root,width=18,text='Speed:%s'%(var_spd.get()),fg=vars.color_text,bg=vars.color_btn)
+        l_ip_2=tk.Label(root,width=18,text='Speed:%s'%(var_spd.get()),fg=color_text,bg=color_btn)
         l_ip_2.place(x=30,y=145)                         #Define a Label and put it in position
 
-        l_ip_4=tk.Label(root,width=18,text='Disconnected',fg=vars.color_text,bg='#F44336')
+        l_ip_4=tk.Label(root,width=18,text='Disconnected',fg=color_text,bg='#F44336')
         l_ip_4.place(x=637,y=110)                         #Define a Label and put it in position
 
-        l_ip_5=tk.Label(root,width=18,text='Use default IP',fg=vars.color_text,bg=vars.color_btn)
+        l_ip_5=tk.Label(root,width=18,text='Use default IP',fg=color_text,bg=color_btn)
         l_ip_5.place(x=637,y=145)                         #Define a Label and put it in position
 
         l_inter=tk.Label(root,width=45,text='< Car Adjustment              Camera Adjustment>\nW:Move Forward                 Look Up:I\nS:Move Backward            Look Down:K\nA:Turn Left                          Turn Left:J\nD:Turn Right                      Turn Right:L\nZ:Auto Mode On          Look Forward:H\nC:Auto Mode Off      Ultrasdonic Scan:X' ,
@@ -584,7 +584,7 @@ def loop():                       #GUI
         E1 = tk.Entry(root,show=None,width=16,bg="#37474F",fg='#eceff1')
         E1.place(x=170,y=40)                             #Define a Entry and put it in position
 
-        l_ip_3=tk.Label(root,width=10,text='IP Address:',fg=vars.color_text,bg='#000000')
+        l_ip_3=tk.Label(root,width=10,text='IP Address:',fg=color_text,bg='#000000')
         l_ip_3.place(x=165,y=15)                         #Define a Label and put it in position
 
         Btn14= ttk.Button(root, width=8, text='Connect', command=connect_2)
@@ -593,7 +593,7 @@ def loop():                       #GUI
         BtnVIN = ttk.Button(root, width=15, text='Voice Input')
         BtnVIN.place(x=30,y=495)
 
-        l_VIN=tk.Label(root,width=16,text='Voice commands',fg=vars.color_text,bg=vars.color_btn)
+        l_VIN=tk.Label(root,width=16,text='Voice commands',fg=color_text,bg=color_btn)
         l_VIN.place(x=30,y=465)      
 
         #Define buttons and put these in position
@@ -707,7 +707,10 @@ if __name__ == '__main__':
     footage_socket.setsockopt_string(zmq.SUBSCRIBE, np.unicode(''))
 
     try:
-        loop()                   # Load GUI
+        #loop()                   # Load GUI
+        root = tk.Tk()
+        MainForm(root).pack(side="top", fill="both", expand=True)
+        root.mainloop()
     except KeyboardInterrupt:
         tcpClicSock = socket(AF_INET, SOCK_STREAM) # Define socket for future socket-closing operation
         cv2.destroyAllWindows()
