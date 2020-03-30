@@ -3,11 +3,27 @@ import math
 import tkinter as tk
 
 from vars import color_can
+from eventhook import EventHook
+
+import enum
 
 
-# TODO: detect angle of rotation for wheels
-# TODO: detect speed
-# TODO: declare events for external app
+# Using enum class create enumerations
+class EventTypes(enum.Enum):
+    Finish = 1
+    Motion = 2
+
+
+class JoystickEvent:
+    def __init__(self, type):
+        self.type = type
+
+    @classmethod
+    def motionevent(cls, speed, angle):
+        cls.speed = speed
+        cls.angle = angle
+        return cls(EventTypes.Motion)
+
 
 def distance(x1, y1, x2, y2):
     dst = math.sqrt(math.pow(x2 - x1, 2) + math.pow(y2 - y1, 2))
@@ -15,10 +31,25 @@ def distance(x1, y1, x2, y2):
     return dst, angle
 
 
+def speed(y1, y2, max_y):
+    dst = y1 - y2
+    if dst > max_y:
+        dst = max_y
+    return dst / max_y
+
+
 class JoystickWidget(tk.Frame):
     def __init__(self, parent):
         self.parent = parent
         tk.Frame.__init__(self, parent)
+
+        # events
+        self.onThrottleFwd = EventHook()
+        self.OnThrottleBack = EventHook()
+        self.OnThrottleStop = EventHook()
+        self.OnSteeringLeft = EventHook()
+        self.OnSteeringRight = EventHook()
+        self.OnSteeringCenter = EventHook()
 
         w = 200  # widget width
         h = 200  # widget height
@@ -32,18 +63,23 @@ class JoystickWidget(tk.Frame):
         self.can_jsk.create_oval(self.cx - self.radius, self.cy - self.radius,
                                  self.cx + self.radius, self.cy + self.radius,
                                  fill='lightgrey', outline='white')
+
+        self.arc_f = self.can_jsk.create_arc(self.cx - self.radius, self.cy - self.radius,
+                                             self.cx + self.radius, self.cy + self.radius,
+                                             style='chord', start=270, extent=0, fill='darkgreen')
+
+        self.arc_r = self.can_jsk.create_arc(self.cx - self.radius, self.cy - self.radius,
+                                             self.cx + self.radius, self.cy + self.radius,
+                                             start=0, extent=0, fill='orange')
+
+        self.arc_l = self.can_jsk.create_arc(self.cx - self.radius, self.cy - self.radius,
+                                             self.cx + self.radius, self.cy + self.radius,
+                                             start=180, extent=0, fill='orange')
+
         self.can_jsk.create_line(self.cx, self.cy - self.radius, self.cx, self.cy + self.radius,
                                  fill='darkgrey')
         self.can_jsk.create_line(self.cx - self.radius, self.cy, self.cx + self.radius, self.cy,
                                  fill='darkgrey')
-
-        self.arc_1 = self.can_jsk.create_arc(self.cx - self.radius, self.cy - self.radius,
-                                 self.cx + self.radius, self.cy + self.radius,
-                                start=0, extent=0, fill='orange')
-
-        self.arc_2 = self.can_jsk.create_arc(self.cx - self.radius, self.cy - self.radius,
-                                self.cx + self.radius, self.cy + self.radius,
-                                start=180, extent=0, fill='orange')
 
         self.jstkPtr = self.can_jsk.create_oval(self.cx - self.jstkRadius, self.cy - self.jstkRadius,
                                                 self.cx + self.jstkRadius, self.cy + self.jstkRadius,
@@ -55,6 +91,7 @@ class JoystickWidget(tk.Frame):
 
     def placeJskPtr(self, x, y):
         dst, angle = distance(self.cx, self.cy, x, y)
+        spd = speed(self.cy, y, self.radius) * 90
         if dst > (self.radius - self.jstkRadius):
             c_adj = (self.radius - self.jstkRadius) / dst
             x = self.cx + (x - self.cx) * c_adj
@@ -64,8 +101,9 @@ class JoystickWidget(tk.Frame):
                             x - self.jstkRadius, y - self.jstkRadius,
                             x + self.jstkRadius, y + self.jstkRadius)
 
-        self.can_jsk.itemconfigure(self.arc_1, start=0, extent=angle-90)
-        self.can_jsk.itemconfigure(self.arc_2, start=180, extent=angle-90)
+        self.can_jsk.itemconfigure(self.arc_r, start=0, extent=angle - 90)
+        self.can_jsk.itemconfigure(self.arc_l, start=180, extent=angle - 90)
+        self.can_jsk.itemconfigure(self.arc_f, start=270 - spd, extent=spd * 2)
 
     def LButtonClick(self, event):
         print('Left Button click')
@@ -75,14 +113,29 @@ class JoystickWidget(tk.Frame):
         self.can_jsk.coords(self.jstkPtr,
                             self.cx - self.jstkRadius, self.cy - self.jstkRadius,
                             self.cx + self.jstkRadius, self.cy + self.jstkRadius)
-        self.can_jsk.itemconfigure(self.arc_1, start=0, extent=0)
-        self.can_jsk.itemconfigure(self.arc_2, start=180, extent=0)
+        self.can_jsk.itemconfigure(self.arc_r, start=0, extent=0)
+        self.can_jsk.itemconfigure(self.arc_l, start=180, extent=0)
+        self.can_jsk.itemconfigure(self.arc_f, start=270, extent=0)
+        self.fireEvents(JoystickEvent(EventTypes.Finish))
 
     def MouseMove(self, event):
         dst, angle = distance(self.cx, self.cy, event.x, event.y)
-        #angle = math.degrees(math.acos((event.x - self.cx) / dst))
-        print('MouseMove x %s; y %s distance %s; angle %s' % (event.x, event.y, dst, angle))
+        spd = speed(self.cy, event.y, self.radius)
+        print('MouseMove x %s; y %s distance %s; angle %s; speed %s' % (event.x, event.y, dst, angle, spd))
         self.placeJskPtr(event.x, event.y)
+        self.fireEvents(JoystickEvent.motionevent(spd, angle))
 
     def get(self):
         return self.entry.get()
+
+    def fireEvents(self, event):
+        if event.type == EventTypes.Finish:
+            self.OnThrottleStop.fire()
+            self.OnSteeringCenter.fire()
+        elif event.type == EventTypes.Motion:
+            if event.speed > 0:
+                self.onThrottleFwd.fire()
+            if event.angle > 90:
+                self.OnSteeringLeft.fire()
+            else:
+                self.OnSteeringLeft.fire()
