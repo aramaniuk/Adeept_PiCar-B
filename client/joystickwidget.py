@@ -2,8 +2,8 @@
 import math
 import tkinter as tk
 
-from vars import color_can
-from eventhook import EventHook
+from client.vars import color_can
+from client.eventhook import EventHook
 
 import enum
 
@@ -14,7 +14,7 @@ class EventTypes(enum.Enum):
     Motion = 2
 
 
-class JoystickEvent:
+class JoystickEvent(object):
     def __init__(self, type):
         self.type = type
 
@@ -44,7 +44,7 @@ class JoystickWidget(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         # events
-        self.onThrottleFwd = EventHook()
+        self.OnThrottleFwd = EventHook()
         self.OnThrottleBack = EventHook()
         self.OnThrottleStop = EventHook()
         self.OnSteeringLeft = EventHook()
@@ -134,7 +134,7 @@ class JoystickWidget(tk.Frame):
             self.OnSteeringCenter.fire()
         elif event.type == EventTypes.Motion:
             if event.speed > 0:
-                self.onThrottleFwd.fire()
+                self.OnThrottleFwd.fire()
             if event.angle > 90:
                 self.OnSteeringLeft.fire()
             else:
