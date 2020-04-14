@@ -3,25 +3,25 @@
 import tkinter as tk
 from tkinter import ttk
 
-from client.vars import SR_mode,ipcon,\
-    ADDR,BUFSIZ,ip_stu,ipaddr,mainloop_status,TestMode,\
-    color_bg,color_text,color_btn,color_line,color_can,color_oval,target_color
+from client.vars import SR_mode, ipcon, \
+    ADDR, BUFSIZ, ip_stu, ipaddr, mainloop_status, TestMode, \
+    color_bg, color_text, color_btn, color_line, color_can, color_oval, target_color
 
 from client.usscanwidget import USScanWidget
 from client.joystickwidget import JoystickWidget
 from client.carcontroller import CarController
 from client.textconfig import num_import
 
-#TODO calibration for camera and steering through joysticks
-#TODO initiate network connection
-#TODO initiate network processing
-#TODO network disconnect when pressed button again
-#TODO joystickwidget event translation to controler for car and for camera
-#TODO ultrasound scan in realtime
-#TODO load calibration settings from car once connected
-#TODO load battery settings from car
-#TODO see what other peripherial data from car can be read
 
+# TODO initiate network connection
+# TODO initiate network processing
+# TODO calibration for camera and steering through joysticks
+# TODO network disconnect when pressed button again
+# TODO joystickwidget event translation to controler for car and for camera
+# TODO ultrasound scan in realtime
+# TODO load calibration settings from car once connected
+# TODO load battery settings from car
+# TODO see what other peripherial data from car can be read
 
 
 class MainForm(tk.Frame):
@@ -37,16 +37,17 @@ class MainForm(tk.Frame):
         self.car_connect.socket_disconnect()
 
     def configure_gui(self):
-        self.parent.title('Adeept')          # Main window title
-        self.parent.geometry('780x630')      # Main window size, middle of the English letter x.
-        self.parent.config(bg=color_bg)      # Set the background color of root window
+        self.parent.title('Adeept')  # Main window title
+        self.parent.geometry('780x630')  # Main window size, middle of the English letter x.
+        self.parent.config(bg=color_bg)  # Set the background color of root window
 
     def create_widgets(self):
-        self.var_spd = tk.StringVar()        # Speed value saved in a StringVar
-        self.var_spd.set(1)                  # Set a default speed,but change it would not change the default speed value in the car,you need to click button'Set' to send the value to the car
+        self.var_spd = tk.StringVar()  # Speed value saved in a StringVar
+        self.var_spd.set(
+            1)  # Set a default speed,but change it would not change the default speed value in the car,you need to click button'Set' to send the value to the car
 
-        self.var_x_scan = tk.IntVar()        # Scan range value saved in a IntVar
-        self.var_x_scan.set(2)               # Set a default scan value
+        self.var_x_scan = tk.IntVar()  # Scan range value saved in a IntVar
+        self.var_x_scan.set(2)  # Set a default scan value
 
         # self.BtnC1 = ttk.Button(self.parent, width=15, text='Camera Middle')
         # self.BtnC1.place(x=785,y=10)
@@ -98,17 +99,15 @@ class MainForm(tk.Frame):
         self.E1.insert(0, num_import("ip.txt", "IP:"))
         self.Btn14 = ttk.Button(self.frm_connection, width=8, text='Connect', command=self.OnButtonConnect)
 
-
         self.frm_connection.pack(expand=1, anchor=tk.NW)
         self.l_ip_4.pack(side=tk.LEFT, padx=10, pady=5)
         self.E1.pack(side=tk.LEFT, padx=10, pady=5)
         self.Btn14.pack(side=tk.LEFT, padx=10, pady=5)
 
         self.l_inter = tk.Label(self.parent, width=45,
-                           text='< Car Adjustment              Camera Adjustment>\nW:Move Forward                 Look Up:I\nS:Move Backward            Look Down:K\nA:Turn Left                          Turn Left:J\nD:Turn Right                      Turn Right:L\nZ:Auto Mode On          Look Forward:H\nC:Auto Mode Off      Ultrasdonic Scan:X',
-                           fg='#212121', bg='#90a4ae')
+                                text='< Car Adjustment              Camera Adjustment>\nW:Move Forward                 Look Up:I\nS:Move Backward            Look Down:K\nA:Turn Left                          Turn Left:J\nD:Turn Right                      Turn Right:L\nZ:Auto Mode On          Look Forward:H\nC:Auto Mode Off      Ultrasdonic Scan:X',
+                                fg='#212121', bg='#90a4ae')
         self.l_inter.place(x=240, y=180)  # Define a Label and put it in position
-
 
         # self.BtnVIN = ttk.Button(self.parent, width=15, text='Voice Input')
         # self.BtnVIN.place(x=30, y=495)
@@ -141,7 +140,6 @@ class MainForm(tk.Frame):
         self.CameraW.pack(side=tk.LEFT, padx=10, pady=5)
 
         self.car_controller.OnConnectionStatus += self.OnConnectionStatusChange
-
 
     def call_opencv(self):  # Start OpenCV mode
         print("Start OpenCV mode")
