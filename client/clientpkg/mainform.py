@@ -1,16 +1,15 @@
 #!/usr/bin/python
 
 import tkinter as tk
+import threading as thread
 from tkinter import ttk
 
-from client.vars import SR_mode, ipcon, \
-    ADDR, BUFSIZ, ip_stu, ipaddr, mainloop_status, TestMode, \
-    color_bg, color_text, color_btn, color_line, color_can, color_oval, target_color
+from clientpkg.vars import color_bg, color_text
 
-from client.usscanwidget import USScanWidget
-from client.joystickwidget import JoystickWidget
-from client.carcontroller import CarController
-from client.textconfig import num_import
+from clientpkg.usscanwidget import USScanWidget
+from clientpkg.joystickwidget import JoystickWidget
+from clientpkg.carcontroller import CarController
+from clientpkg.textconfig import num_import, replace_num
 
 
 # TODO initiate network connection
@@ -31,7 +30,6 @@ class MainForm(tk.Frame):
         self.car_controller = CarController()
         self.configure_gui()
         self.create_widgets()
-        self.car_controller.socket_connect()
 
     def __del__(self):
         self.car_connect.socket_disconnect()
@@ -43,8 +41,7 @@ class MainForm(tk.Frame):
 
     def create_widgets(self):
         self.var_spd = tk.StringVar()  # Speed value saved in a StringVar
-        self.var_spd.set(
-            1)  # Set a default speed,but change it would not change the default speed value in the car,you need to click button'Set' to send the value to the car
+        self.var_spd.set(1)  # Set a default speed,but change it would not change the default speed value in the car,you need to click button'Set' to send the value to the car
 
         self.var_x_scan = tk.IntVar()  # Scan range value saved in a IntVar
         self.var_x_scan.set(2)  # Set a default scan value
@@ -140,6 +137,8 @@ class MainForm(tk.Frame):
         self.CameraW.pack(side=tk.LEFT, padx=10, pady=5)
 
         self.car_controller.OnConnectionStatus += self.OnConnectionStatusChange
+        self.car_controller.OnConnectionError += self.OnConnectionError
+        self.car_controller.OnConnectionSuccess += self.OnConnectionSuccess
 
     def call_opencv(self):  # Start OpenCV mode
         print("Start OpenCV mode")
@@ -147,12 +146,42 @@ class MainForm(tk.Frame):
     def call_SR3(self):
         print("Call SR3")
 
+    ####### EVENT HANDLERS ########
+
+    def OnButtonConnect(self):
+        if self.car_controller.connection_status == 1:
+            ip_adr = self.E1.get()  # Get the IP address from Entry
+
+            if ip_adr == '':  # If no input IP address in Entry,import a default IP
+                ip_adr = num_import("ip.txt", "IP:")
+                self.E1.insert(0, ip_adr)
+            sc=thread.Thread(target=self.car_controller.socket_connect, args=(ip_adr,)) #Define a thread for connection
+            sc.setDaemon(True)                      #'True' means it is a front thread,it would close when the mainloop() closes
+            sc.start()                              #Thread starts
+        print("ButtonConnect")
+
     def OnJoystickEnd(self):
         print("JoystickReleased")
 
     def OnConnectionStatusChange(self, status):
         print("ConnectionStatusChange: " + status)
         self.l_ip_4.config(text=status)
+        self.l_ip_4.config(bg='#FF8F00')
 
-    def OnButtonConnect(self):
-        print("Connect")
+
+    def OnConnectionSuccess(self, status):
+            print("OnConnectionSuccess: " + status)
+            self.l_ip_4.config(text=status)
+            self.l_ip_4.config(bg='#558B2F')
+
+            replace_num('IP.txt', 'IP:', self.E1.get())
+            self.E1.config(state='disabled')  # Disable the Entry
+            self.Btn14.config(state='disabled')  # Disable the Entry
+
+
+    def OnConnectionError(self, status):
+            print("OnConnectionError: " + status)
+            self.l_ip_4.config(text=status)
+            self.l_ip_4.config(bg='#F44336')
+            self.E1.config(state='normal')  # Disable the Entry
+            self.Btn14.config(state='normal')  # Disable the Entry

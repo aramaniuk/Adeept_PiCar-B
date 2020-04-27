@@ -1,10 +1,15 @@
 #!/usr/bin/python
-from client.eventhook import EventHook
+import time
+from socket import socket, AF_INET, SOCK_STREAM
 import enum
+from clientpkg.eventhook import EventHook
+
 
 # Using enum class create enumerations
 class EventTypes(enum.Enum):
     ConnectionStatus = 1
+    ConnectionError = 2
+    ConnectionSuccess = 3
 
 
 class CarControllerEvent(object):
@@ -15,6 +20,17 @@ class CarControllerEvent(object):
     def ConnectionStatus(cls, status):
         cls.status = status
         return cls(EventTypes.ConnectionStatus)
+
+    @classmethod
+    def ConnectionError(cls, status):
+        cls.status = status
+        return cls(EventTypes.ConnectionError)
+
+    @classmethod
+    def ConnectionSuccess(cls, status):
+        cls.status = status
+        return cls(EventTypes.ConnectionSuccess)
+
 
 class CarController(object):
     def __init__(self):
@@ -29,190 +45,181 @@ class CarController(object):
 
         self.l_stu = 0
         self.r_stu = 0
+        self.ip_stu = 1         # Shows connection status
+        self.BUFSIZ = 1024      # Define buffer size for reading from socket
 
         self.led_status = 0
         self.opencv_status = 0
         self.auto_status = 0
         self.speech_status = 0
         self.findline_status = 0
-        self.tcpClicSock = ''
+        self.tcpClientSock = ''
 
         self.OnConnectionStatus = EventHook()
+        self.OnConnectionSuccess = EventHook()
+        self.OnConnectionError = EventHook()
 
+    @property
+    def connection_status(self):
+        return self.ip_stu
 
     def fireEvents(self, event):
         if event.type == EventTypes.ConnectionStatus:
             self.OnConnectionStatus.fire(event.status)
+        elif event.type == EventTypes.ConnectionSuccess:
+            self.OnConnectionSuccess.fire(event.status)
+        elif event.type == EventTypes.ConnectionError:
+            self.OnConnectionError.fire(event.status)
 
 
     def call_forward(self):         #When this function is called,client commands the car to move forward
         if self.c_f_stu == 0:
-            self.tcpClicSock.send(('forward').encode())
+            self.tcpClientSock.send(('forward').encode())
             self.c_f_stu=1
 
     def call_back(self):            #When this function is called,client commands the car to move backward
         if self.c_b_stu == 0:
-            self.tcpClicSock.send(('backward').encode())
+            self.tcpClientSock.send(('backward').encode())
             self.c_b_stu=1
 
     def call_stop(self):            #When this function is called,client commands the car to stop moving
         self.c_f_stu=0
         self.c_b_stu=0
-        self.tcpClicSock.send(('stop').encode())
+        self.tcpClientSock.send(('stop').encode())
 
     def call_stop_2(self):            #When this function is called,client commands the car go straight
         self.c_r_stu=0
         self.c_l_stu=0
-        self.tcpClicSock.send(('middle').encode())
+        self.tcpClientSock.send(('middle').encode())
 
     def click_call_Left(self):            #When this function is called,client commands the car to turn left
-        self.tcpClicSock.send(('Left').encode())
+        self.tcpClientSock.send(('Left').encode())
 
     def click_call_Right(self):           #When this function is called,client commands the car to turn right
-        self.tcpClicSock.send(('Right').encode())
+        self.tcpClientSock.send(('Right').encode())
 
     def call_Left(self):            #When this function is called,client commands the car to turn left
         if self.c_l_stu == 0 :
-            self.tcpClicSock.send(('Left').encode())
+            self.tcpClientSock.send(('Left').encode())
             self.c_l_stu=1
 
     def call_Right(self):           #When this function is called,client commands the car to turn right
         if self.c_r_stu == 0 :
-            self.tcpClicSock.send(('Right').encode())
+            self.tcpClientSock.send(('Right').encode())
             self.c_r_stu=1
 
     def call_look_left(self):               #Camera look left
-        self.tcpClicSock.send(('l_le').encode())
+        self.tcpClientSock.send(('l_le').encode())
 
     def call_look_right(self):              #Camera look right
-        self.tcpClicSock.send(('l_ri').encode())
+        self.tcpClientSock.send(('l_ri').encode())
 
     def call_look_up(self):                 #Camera look up
-        self.tcpClicSock.send(('l_up').encode())
+        self.tcpClientSock.send(('l_up').encode())
 
     def call_look_down(self):               #Camera look down
-        self.tcpClicSock.send(('l_do').encode())
+        self.tcpClientSock.send(('l_do').encode())
 
     def call_ahead(self):                   #Camera look ahead
-        self.tcpClicSock.send(('ahead').encode())
+        self.tcpClientSock.send(('ahead').encode())
         print('ahead')
 
     def call_auto(self):            #When this function is called,client commands the car to start auto mode
         if self.auto_status == 0:
-            self.tcpClicSock.send(('auto').encode())
+            self.tcpClientSock.send(('auto').encode())
         else:
-            self.tcpClicSock.send(('Stop').encode())
+            self.tcpClientSock.send(('Stop').encode())
 
     def call_exit(self):            #When this function is called,client commands the car to shut down
-        self.tcpClicSock.send(('exit').encode())
+        self.tcpClientSock.send(('exit').encode())
 
     def call_Stop(self):            #When this function is called,client commands the car to switch off auto mode
-        self.tcpClicSock.send(('Stop').encode())
+        self.tcpClientSock.send(('Stop').encode())
 
     def scan(self):                 #When this function is called,client commands the ultrasonic to scan
-        self.tcpClicSock.send(('scan').encode())
+        self.tcpClientSock.send(('scan').encode())
         print('scan')
 
     def find_line(self):            #Line follow mode
         if self.findline_status == 0:
-            self.tcpClicSock.send(('findline').encode())
+            self.tcpClientSock.send(('findline').encode())
         else:
-            self.tcpClicSock.send(('Stop').encode())
+            self.tcpClientSock.send(('Stop').encode())
 
     def lights_ON(self):  # Turn on the LEDs
         if self.led_status == 0:
-            self.tcpClicSock.send(('lightsON').encode())
+            self.tcpClientSock.send(('lightsON').encode())
         else:
-            self.tcpClicSock.send(('lightsOFF').encode())
+            self.tcpClientSock.send(('lightsOFF').encode())
 
     def call_SR3(self):  # Start speech recognition mode
         if self.speech_status == 0:
-            self.tcpClicSock.send(('voice_3').encode())
+            self.tcpClientSock.send(('voice_3').encode())
         else:
-            self.tcpClicSock.send(('Stop').encode())
+            self.tcpClientSock.send(('Stop').encode())
 
     def call_opencv(self):  # Start OpenCV mode
         if self.opencv_status == 0:
-            self.tcpClicSock.send(('opencv').encode())
+            self.tcpClientSock.send(('opencv').encode())
         else:
-            self.tcpClicSock.send(('Stop').encode())
+            self.tcpClientSock.send(('Stop').encode())
 
     def socket_disconnect(self):
         print("socket disconnect")
-        if self.tcpClicSock != '':
-            self.tcpClicSock.close()  # Close socket or it may not connect with the server again
+        if self.tcpClientSock != '':
+            self.tcpClientSock.close()  # Close socket or it may not connect with the server again
 
 
-    def socket_connect(self):  # Call this function to connect with the server
-        print("socket_connect thread")
-        self.fireEvents(CarControllerEvent.ConnectionStatus('Connecting'))
-        # global ADDR, tcpClicSock, BUFSIZ, ip_stu, ipaddr
-        # ip_adr = E1.get()  # Get the IP address from Entry
-        #
-        # if ip_adr == '':  # If no input IP address in Entry,import a default IP
-        #     ip_adr = num_import('IP:')
-        #     l_ip_4.config(text='Connecting')
-        #     l_ip_4.config(bg='#FF8F00')
-        #     l_ip_5.config(text='Default:%s' % ip_adr)
-        #     pass
-        #
-        # SERVER_IP = ip_adr
-        # SERVER_PORT = 10223  # Define port serial
-        # BUFSIZ = 1024  # Define buffer size
-        # ADDR = (SERVER_IP, SERVER_PORT)
-        # tcpClicSock = socket(AF_INET, SOCK_STREAM)  # Set connection value for socket
-        #
-        # for i in range(1, 6):  # Try 5 times if disconnected
-        #     try:
-        #         if ip_stu == 1:
-        #             print("Connecting to server @ %s:%d..." % (SERVER_IP, SERVER_PORT))
-        #             print("Connecting")
-        #             tcpClicSock.connect(ADDR)  # Connection with the server
-        #
-        #             print("Connected")
-        #
-        #             l_ip_5.config(text='IP:%s' % ip_adr)
-        #             l_ip_4.config(text='Connected')
-        #             l_ip_4.config(bg='#558B2F')
-        #
-        #             replace_num('IP:', ip_adr)
-        #             E1.config(state='disabled')  # Disable the Entry
-        #             Btn14.config(state='disabled')  # Disable the Entry
-        #
-        #             ip_stu = 0  # '0' means connected
-        #
-        #             at = thread.Thread(target=code_receive)  # Define a thread for data receiving
-        #             at.setDaemon(
-        #                 True)  # 'True' means it is a front thread,it would close when the mainloop() closes
-        #             at.start()  # Thread starts
-        #
-        #             SR_threading = thread.Thread(
-        #                 target=voice_command_thread)  # Define a thread for ultrasonic tracking
-        #             SR_threading.setDaemon(
-        #                 True)  # 'True' means it is a front thread,it would close when the mainloop() closes
-        #             SR_threading.start()  # Thread starts
-        #
-        #             video_thread = thread.Thread(target=video_show)  # Define a thread for data receiving
-        #             video_thread.setDaemon(
-        #                 True)  # 'True' means it is a front thread,it would close when the mainloop() closes
-        #             print('Video Connected')
-        #             # video_thread.start()                            #Thread starts
-        #
-        #             ipaddr = tcpClicSock.getsockname()[0]
-        #             break
-        #         else:
-        #             break
-        #     except Exception:
-        #         print("Cannot connecting to server,try it latter!")
-        #         l_ip_4.config(text='Try %d/5 time(s)' % i)
-        #         l_ip_4.config(bg='#EF6C00')
-        #         print('Try %d/5 time(s)' % i)
-        #         ip_stu = 1
-        #         time.sleep(1)
-        #         continue
-        # if ip_stu == 1:
-        #     l_ip_4.config(text='Disconnected')
-        #     l_ip_4.config(bg='#F44336')
+    def socket_connect(self, ip_adr):  # Call this function to connect with the server
+        #ip_adr = '192.168.10.6'
+        print("socket_connect thread connecting to " + ip_adr )
+        self.fireEvents(CarControllerEvent.ConnectionStatus('Connecting...'))
+
+        server_ip = ip_adr
+        server_port = 10223  # Define port serial
+        addr = (server_ip, server_port)
+        self.tcpClientSock = socket(AF_INET, SOCK_STREAM)  # Set connection value for socket
+
+        for i in range(1, 6):  # Try 5 times if disconnected
+            try:
+                if ip_stu == 1:
+                    print("Connecting to server @ %s:%d..." % (server_ip, server_port))
+                    print("Connecting")
+                    self.tcpClientSock.connect(addr)  # Connection with the server
+
+                    print("Connected")
+
+                    self.fireEvents(CarControllerEvent.ConnectionSuccess('Connected'))
+
+                    self.ip_stu = 0  # '0' means connected
+
+                    # at = thread.Thread(target=code_receive)  # Define a thread for data receiving
+                    # at.setDaemon(True)  # 'True' means it is a front thread,it would close when the mainloop() closes
+                    # at.start()  # Thread starts
+
+                    # SR_threading = thread.Thread(target=voice_command_thread)  # Define a thread for ultrasonic tracking
+                    # SR_threading.setDaemon(True)  # 'True' means it is a front thread,it would close when the mainloop() closes
+                    # SR_threading.start()  # Thread starts
+
+                    # video_thread = thread.Thread(target=video_show)  # Define a thread for data receiving
+                    # video_thread.setDaemon(True)  # 'True' means it is a front thread,it would close when the mainloop() closes
+                    # print('Video Connected')
+                    # video_thread.start()                            #Thread starts
+
+                    # ipaddr = self.tcpClientSock.getsockname()[0]
+                    break
+                else:
+                    break
+            except Exception:
+                print("Cannot connect to server")
+                self.fireEvents(CarControllerEvent.ConnectionStatus('Trying %d/5 time(s)' % i))
+                print('Trying %d/5 time(s)' % i)
+                ip_stu = 1
+                self.tcpClientSock.close()
+                time.sleep(1)
+                continue
+        if ip_stu == 1:
+            self.fireEvents(CarControllerEvent.ConnectionError('Disconnected'))
 
     def code_receive(self):  # A function for data receiving
         print("code receive thread")

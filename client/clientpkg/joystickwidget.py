@@ -2,8 +2,8 @@
 import math
 import tkinter as tk
 
-from client.vars import color_can
-from client.eventhook import EventHook
+from clientpkg.vars import color_can
+from clientpkg.eventhook import EventHook
 
 import enum
 

@@ -2,7 +2,7 @@
 
 import tkinter as tk
 
-from vars import color_can
+from clientpkg.vars import color_can
 
 class USScanWidget(tk.Frame):
     def __init__(self, parent, x_range):

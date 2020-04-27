@@ -11,9 +11,6 @@ target_color    = '#FF6D00'
 a2t             = ''
 TestMode        = 0
 
-ADDR            = ''
-BUFSIZ          = 1024          #Set a buffer size
-ip_stu          = 1             #Shows connection status
 mainloop_status = 0             #A status value,ensure the mainloop() runs only once
 
 BtnIP = ''
