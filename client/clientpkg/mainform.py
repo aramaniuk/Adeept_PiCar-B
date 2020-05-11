@@ -4,7 +4,7 @@ import tkinter as tk
 import threading as thread
 from tkinter import ttk
 
-from clientpkg.vars import color_bg, color_text
+from clientpkg.vars import color_bg,color_text,color_static_label,color_status_error,color_status_ok,color_status_active
 
 from clientpkg.usscanwidget import USScanWidget
 from clientpkg.joystickwidget import JoystickWidget
@@ -12,8 +12,9 @@ from clientpkg.carcontroller import CarController
 from clientpkg.textconfig import num_import, replace_num
 
 
-# TODO initiate network connection
 # TODO initiate network processing
+    # TODO - create car status field on the form
+    # TODO - receive car adjustment values and push to joysticks for calibration
 # TODO calibration for camera and steering through joysticks
 # TODO network disconnect when pressed button again
 # TODO joystickwidget event translation to controler for car and for camera
@@ -91,15 +92,15 @@ class MainForm(tk.Frame):
         self.frm_connection = tk.LabelFrame(text="Connection")
         self.frm_connection.config(bg=color_bg)
 
-        self.l_ip_4 = tk.Label(self.frm_connection, width=18, text='Disconnected', fg=color_text, bg='#F44336')
-        self.E1 = tk.Entry(self.frm_connection, show=None, width=16, bg="#37474F", fg='#eceff1')
-        self.E1.insert(0, num_import("ip.txt", "IP:"))
-        self.Btn14 = ttk.Button(self.frm_connection, width=8, text='Connect', command=self.OnButtonConnect)
+        self.l_connection_status = tk.Label(self.frm_connection, width=18, text='Disconnected', fg=color_text, bg=color_status_error)
+        self.e_ip_address = tk.Entry(self.frm_connection, show=None, width=16, bg="#37474F", fg='#eceff1')
+        self.e_ip_address.insert(0, num_import("ip.txt", "IP:"))
+        self.btn_connect = ttk.Button(self.frm_connection, width=8, text='Connect', command=self.on_button_connect)
 
         self.frm_connection.pack(expand=1, anchor=tk.NW)
-        self.l_ip_4.pack(side=tk.LEFT, padx=10, pady=5)
-        self.E1.pack(side=tk.LEFT, padx=10, pady=5)
-        self.Btn14.pack(side=tk.LEFT, padx=10, pady=5)
+        self.l_connection_status.pack(side=tk.LEFT, padx=10, pady=5)
+        self.e_ip_address.pack(side=tk.LEFT, padx=10, pady=5)
+        self.btn_connect.pack(side=tk.LEFT, padx=10, pady=5)
 
         self.l_inter = tk.Label(self.parent, width=45,
                                 text='< Car Adjustment              Camera Adjustment>\nW:Move Forward                 Look Up:I\nS:Move Backward            Look Down:K\nA:Turn Left                          Turn Left:J\nD:Turn Right                      Turn Right:L\nZ:Auto Mode On          Look Forward:H\nC:Auto Mode Off      Ultrasdonic Scan:X',
@@ -122,23 +123,47 @@ class MainForm(tk.Frame):
         self.frm_control = tk.LabelFrame(text="Control")
         self.frm_control.config(bg=color_bg)
 
-        self.ScanW = USScanWidget(self.frm_control, self.var_x_scan.get())
-        # self.ScanW.place(x=440, y=80)
+        f_left = tk.Frame(self.frm_control)
+        f_left.config(bg=color_bg)
+        f_middle = tk.Frame(self.frm_control)
+        f_middle.config(bg=color_bg)
+        f_right = tk.Frame(self.frm_control)
+        f_right.config(bg=color_bg)
 
-        self.JstkW = JoystickWidget(self.frm_control)
-        # self.JstkW.place(x=20, y=80)
-        self.JstkW.OnThrottleStop += self.OnJoystickEnd
+        # left side control
+        self.l_jstk = tk.Label(f_left, width=18, text='Navigation', fg=color_text, bg=color_static_label)
+        self.JstkW = JoystickWidget(f_left)
+        self.JstkW.OnThrottleStop += self.on_joystick_end
 
-        self.CameraW = JoystickWidget(self.frm_control)
+        self.JstkW.pack(side=tk.TOP, padx=10, pady=5)
+        self.l_jstk.pack(side=tk.BOTTOM, padx=10, pady=5)
+
+        # middle side control
+        self.ScanW = USScanWidget(f_middle, self.var_x_scan.get())
+        self.l_scan = tk.Label(f_middle, width=18, text='Ultrasonic sensor', fg=color_text, bg=color_static_label)
+
+        self.ScanW.pack(side=tk.TOP, padx=10, pady=5)
+        self.l_scan.pack(side=tk.BOTTOM, padx=10, pady=5)
+
+        # right side control
+        self.CameraW = JoystickWidget(f_right)
+        self.l_camera = tk.Label(f_right, width=18, text='Camera', fg=color_text, bg=color_static_label)
+
+        self.CameraW.pack(side=tk.TOP, padx=10, pady=5)
+        self.l_camera.pack(side=tk.BOTTOM, padx=10, pady=5)
 
         self.frm_control.pack(side=tk.LEFT)
-        self.JstkW.pack(side=tk.LEFT, padx=10, pady=5)
-        self.ScanW.pack(side=tk.LEFT, padx=10, pady=5)
-        self.CameraW.pack(side=tk.LEFT, padx=10, pady=5)
 
-        self.car_controller.OnConnectionStatus += self.OnConnectionStatusChange
-        self.car_controller.OnConnectionError += self.OnConnectionError
-        self.car_controller.OnConnectionSuccess += self.OnConnectionSuccess
+        f_left.pack(side=tk.LEFT)
+        f_middle.pack(side=tk.LEFT)
+        f_right.pack(side=tk.LEFT)
+
+        # Event subscriptions
+        self.car_controller.on_connection_status += self.on_connection_status_change
+        self.car_controller.on_connection_error += self.on_connection_error
+        self.car_controller.on_connection_success += self.on_connection_success
+        self.car_controller.on_car_settings += self.on_car_settings
+        self.car_controller.on_ultrasonic_data += self.ScanW.on_update_ultrasonic_data
 
     def call_opencv(self):  # Start OpenCV mode
         print("Start OpenCV mode")
@@ -148,40 +173,67 @@ class MainForm(tk.Frame):
 
     ####### EVENT HANDLERS ########
 
-    def OnButtonConnect(self):
+    def on_button_connect(self):
         if self.car_controller.connection_status == 1:
-            ip_adr = self.E1.get()  # Get the IP address from Entry
+            ip_adr = self.e_ip_address.get()  # Get the IP address from Entry
 
             if ip_adr == '':  # If no input IP address in Entry,import a default IP
                 ip_adr = num_import("ip.txt", "IP:")
-                self.E1.insert(0, ip_adr)
+                self.e_ip_address.insert(0, ip_adr)
+            self.btn_connect.config(state='disabled')  # Disable the Entry
             sc=thread.Thread(target=self.car_controller.socket_connect, args=(ip_adr,)) #Define a thread for connection
             sc.setDaemon(True)                      #'True' means it is a front thread,it would close when the mainloop() closes
             sc.start()                              #Thread starts
+
         print("ButtonConnect")
 
-    def OnJoystickEnd(self):
+    def on_joystick_end(self):
         print("JoystickReleased")
 
-    def OnConnectionStatusChange(self, status):
+    def on_connection_status_change(self, status):
         print("ConnectionStatusChange: " + status)
-        self.l_ip_4.config(text=status)
-        self.l_ip_4.config(bg='#FF8F00')
+        self.l_connection_status.config(text=status)
+        self.l_connection_status.config(bg=color_status_active)
 
 
-    def OnConnectionSuccess(self, status):
-            print("OnConnectionSuccess: " + status)
-            self.l_ip_4.config(text=status)
-            self.l_ip_4.config(bg='#558B2F')
+    def on_connection_success(self, status):
+        print("OnConnectionSuccess: " + status)
+        self.l_connection_status.config(text=status)
+        self.l_connection_status.config(bg=color_status_ok)
 
-            replace_num('IP.txt', 'IP:', self.E1.get())
-            self.E1.config(state='disabled')  # Disable the Entry
-            self.Btn14.config(state='disabled')  # Disable the Entry
+        replace_num('IP.txt', 'IP:', self.e_ip_address.get())
+        self.e_ip_address.config(state='disabled')  # Disable the Entry
 
 
-    def OnConnectionError(self, status):
-            print("OnConnectionError: " + status)
-            self.l_ip_4.config(text=status)
-            self.l_ip_4.config(bg='#F44336')
-            self.E1.config(state='normal')  # Disable the Entry
-            self.Btn14.config(state='normal')  # Disable the Entry
+    def on_connection_error(self, status):
+        print("OnConnectionError: " + status)
+        self.l_connection_status.config(text=status)
+        self.l_connection_status.config(bg='#F44336')
+        self.e_ip_address.config(state='normal')  # Disable the Entry
+        self.btn_connect.config(state='normal')  # Disable the Entry
+
+    def on_car_settings(self, settings):
+        print("OnCarSettings: " + settings)
+        set_list = settings.split()
+        s1, s2, s3, s4, s5, s6 = set_list[1:]
+        # camera center vertical           s1
+        # camera center horisontal         s1
+        # Motor A Speed Adjustment	       s3
+        # Motor B Speed Adjustment	       s4
+        # Motor A Turning Speed Adjustment s5
+        # Motor B Turning Speed Adjustment s6
+
+        # TODO: update controls with car settings
+        # E_C1.delete(0, 50)
+        # E_C2.delete(0, 50)
+        # E_M1.delete(0, 50)
+        # E_M2.delete(0, 50)
+        # E_T1.delete(0, 50)
+        # E_T2.delete(0, 50)
+        #
+        # E_C1.insert(0, '%d' % int(s1))
+        # E_C2.insert(0, '%d' % int(s2))
+        # E_M1.insert(0, '%d' % int(s3))
+        # E_M2.insert(0, '%d' % int(s4))
+        # E_T1.insert(0, '%d' % int(s5))
+        # E_T2.insert(0, '%d' % int(s6))
