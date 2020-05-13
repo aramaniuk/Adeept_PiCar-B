@@ -89,23 +89,39 @@ class MainForm(tk.Frame):
         # self.BtnSR3 = ttk.Button(self.parent, width=15, text='Sphinx SR',command=self.call_SR3)
         # self.BtnSR3.place(x=300,y=495)
 
-        self.frm_connection = tk.LabelFrame(text="Connection")
-        self.frm_connection.config(bg=color_bg)
+        frm_top_bar = tk.Frame(self.parent)
+        frm_top_bar.config(bg=color_bg)
 
-        self.l_connection_status = tk.Label(self.frm_connection, width=18, text='Disconnected', fg=color_text, bg=color_status_error)
-        self.e_ip_address = tk.Entry(self.frm_connection, show=None, width=16, bg="#37474F", fg='#eceff1')
+        frm_connection = tk.LabelFrame(frm_top_bar, text="Connection")
+        frm_connection.config(bg=color_bg)
+
+        self.l_connection_status = tk.Label(frm_connection, width=18, text='Disconnected', fg=color_text, bg=color_status_error)
+        self.e_ip_address = tk.Entry(frm_connection, show=None, width=16, bg="#37474F", fg='#eceff1')
         self.e_ip_address.insert(0, num_import("ip.txt", "IP:"))
-        self.btn_connect = ttk.Button(self.frm_connection, width=8, text='Connect', command=self.on_button_connect)
+        self.btn_connect = ttk.Button(frm_connection, width=8, text='Connect', command=self.on_button_connect)
 
-        self.frm_connection.pack(expand=1, anchor=tk.NW)
+        frm_car_status = tk.LabelFrame(frm_top_bar, text="Car Status")
+        frm_car_status.config(bg=color_bg)
+
+        self.l_car_status = tk.Label(frm_car_status, width=28, text='waiting for connection', fg=color_text,
+                                     bg=color_status_active)
+
+        frm_top_bar.pack(expand=1, anchor=tk.NW)
+        frm_connection.pack(side=tk.LEFT, padx=10, pady=5)
+        frm_car_status.pack(side=tk.LEFT, padx=10, pady=5)
+
         self.l_connection_status.pack(side=tk.LEFT, padx=10, pady=5)
         self.e_ip_address.pack(side=tk.LEFT, padx=10, pady=5)
         self.btn_connect.pack(side=tk.LEFT, padx=10, pady=5)
+
+        self.l_car_status.pack(side=tk.LEFT, padx=10, pady=5)
 
         self.l_inter = tk.Label(self.parent, width=45,
                                 text='< Car Adjustment              Camera Adjustment>\nW:Move Forward                 Look Up:I\nS:Move Backward            Look Down:K\nA:Turn Left                          Turn Left:J\nD:Turn Right                      Turn Right:L\nZ:Auto Mode On          Look Forward:H\nC:Auto Mode Off      Ultrasdonic Scan:X',
                                 fg='#212121', bg='#90a4ae')
         self.l_inter.place(x=240, y=180)  # Define a Label and put it in position
+
+
 
         # self.BtnVIN = ttk.Button(self.parent, width=15, text='Voice Input')
         # self.BtnVIN.place(x=30, y=495)
@@ -120,20 +136,20 @@ class MainForm(tk.Frame):
         # self.E_T1.insert(0, 'Default:662')
         # self.E_T2.insert(0, 'Default:295')
 
-        self.frm_control = tk.LabelFrame(text="Control")
-        self.frm_control.config(bg=color_bg)
+        frm_control = tk.LabelFrame(self.parent, text="Control")
+        frm_control.config(bg=color_bg)
 
-        f_left = tk.Frame(self.frm_control)
+        f_left = tk.Frame(frm_control)
         f_left.config(bg=color_bg)
-        f_middle = tk.Frame(self.frm_control)
+        f_middle = tk.Frame(frm_control)
         f_middle.config(bg=color_bg)
-        f_right = tk.Frame(self.frm_control)
+        f_right = tk.Frame(frm_control)
         f_right.config(bg=color_bg)
 
         # left side control
         self.l_jstk = tk.Label(f_left, width=18, text='Navigation', fg=color_text, bg=color_static_label)
         self.JstkW = JoystickWidget(f_left)
-        self.JstkW.OnThrottleStop += self.on_joystick_end
+        self.JstkW.disable()
 
         self.JstkW.pack(side=tk.TOP, padx=10, pady=5)
         self.l_jstk.pack(side=tk.BOTTOM, padx=10, pady=5)
@@ -147,23 +163,41 @@ class MainForm(tk.Frame):
 
         # right side control
         self.CameraW = JoystickWidget(f_right)
+        self.CameraW.disable()
         self.l_camera = tk.Label(f_right, width=18, text='Camera', fg=color_text, bg=color_static_label)
 
         self.CameraW.pack(side=tk.TOP, padx=10, pady=5)
         self.l_camera.pack(side=tk.BOTTOM, padx=10, pady=5)
 
-        self.frm_control.pack(side=tk.LEFT)
+        frm_control.pack(side=tk.LEFT)
 
         f_left.pack(side=tk.LEFT)
         f_middle.pack(side=tk.LEFT)
         f_right.pack(side=tk.LEFT)
 
-        # Event subscriptions
+        # CarController events
         self.car_controller.on_connection_status += self.on_connection_status_change
         self.car_controller.on_connection_error += self.on_connection_error
         self.car_controller.on_connection_success += self.on_connection_success
         self.car_controller.on_car_settings += self.on_car_settings
         self.car_controller.on_ultrasonic_data += self.ScanW.on_update_ultrasonic_data
+        self.car_controller.on_car_status += self.on_car_status
+
+        # Joystick events
+        self.JstkW.OnThrottleFwd += self.on_car_fwd
+        self.JstkW.OnThrottleBack += self.on_car_back
+        self.JstkW.OnThrottleStop += self.on_car_stop
+        self.JstkW.OnSteeringLeft += self.on_car_left
+        self.JstkW.OnSteeringRight += self.on_car_right
+        self.JstkW.OnSteeringCenter += self.on_car_center
+
+        # Camera events
+        self.CameraW.OnThrottleFwd += self.on_camera_up
+        self.CameraW.OnThrottleBack += self.on_camera_down
+        self.CameraW.OnThrottleStop += self.on_camera_center
+        self.CameraW.OnSteeringLeft += self.on_camera_left
+        self.CameraW.OnSteeringRight += self.on_camera_right
+        self.CameraW.OnSteeringCenter += self.on_camera_center
 
     def call_opencv(self):  # Start OpenCV mode
         print("Start OpenCV mode")
@@ -187,9 +221,8 @@ class MainForm(tk.Frame):
 
         print("ButtonConnect")
 
-    def on_joystick_end(self):
-        print("JoystickReleased")
 
+    ###### CarController events ######
     def on_connection_status_change(self, status):
         print("ConnectionStatusChange: " + status)
         self.l_connection_status.config(text=status)
@@ -201,6 +234,8 @@ class MainForm(tk.Frame):
         self.l_connection_status.config(text=status)
         self.l_connection_status.config(bg=color_status_ok)
 
+        self.JstkW.enable()
+        self.CameraW.enable()
         replace_num('IP.txt', 'IP:', self.e_ip_address.get())
         self.e_ip_address.config(state='disabled')  # Disable the Entry
 
@@ -237,3 +272,44 @@ class MainForm(tk.Frame):
         # E_M2.insert(0, '%d' % int(s4))
         # E_T1.insert(0, '%d' % int(s5))
         # E_T2.insert(0, '%d' % int(s6))
+
+    def on_car_status(self, status, statusCode):
+        print("OnCarStatus: " + status)
+        self.l_car_status.config(text=status)
+
+
+    ###### Car control joystick events #####
+    def on_car_fwd(self):
+        self.car_controller.call_forward()
+
+    def on_car_back(self):
+        self.car_controller.call_back()
+
+    def on_car_stop(self):
+        self.car_controller.call_stop()
+
+    def on_car_left(self):
+        self.car_controller.call_Left()
+
+    def on_car_right(self):
+        self.car_controller.call_Right()
+
+    def on_car_center(self):
+        self.car_controller.call_center()
+
+    ###### Camera joystick events #####
+    def on_camera_up(self):
+        self.car_controller.call_look_up()
+
+    def on_camera_down(self):
+        self.car_controller.call_look_down()
+
+    def on_camera_center(self):
+        self.car_controller.call_ahead()
+
+    def on_camera_left(self):
+        self.car_controller.call_look_left()
+
+    def on_camera_right(self):
+        self.car_controller.call_look_right()
+

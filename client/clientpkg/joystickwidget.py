@@ -105,6 +105,17 @@ class JoystickWidget(tk.Frame):
         self.can_jsk.itemconfigure(self.arc_l, start=180, extent=angle - 90)
         self.can_jsk.itemconfigure(self.arc_f, start=270 - spd, extent=spd * 2)
 
+    def enable(self):
+        self.can_jsk.bind('<Button-1>', self.LButtonClick)
+        self.can_jsk.bind('<ButtonRelease-1>', self.LButtonRelease)
+        self.can_jsk.bind('<B1-Motion>', self.MouseMove)
+
+    def disable(self):
+        self.can_jsk.unbind('<Button-1>')
+        self.can_jsk.unbind('<ButtonRelease-1>')
+        self.can_jsk.unbind('<B1-Motion>')
+
+    #### EVENTS #####
     def LButtonClick(self, event):
         print('Left Button click')
 
