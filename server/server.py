@@ -594,6 +594,8 @@ def run():                   #Main loop
 
         elif 'forward' in data:                #When server receive "forward" from client,car moves forward
             tcpCliSock.send('1'.encode())
+            spd_ad = float((str(data))[8:])  # Speed Adjustment
+            print("forward:speed_ad "+str(spd_ad))
             motor.motor_left(status, forward,left_spd*spd_ad)
             motor.motor_right(status,backward,right_spd*spd_ad)
             colorWipe(strip, Color(0,0,255))

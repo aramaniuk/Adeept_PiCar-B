@@ -28,14 +28,14 @@ class JoystickEvent(object):
 def distance(x1, y1, x2, y2):
     dst = math.sqrt(math.pow(x2 - x1, 2) + math.pow(y2 - y1, 2))
     angle = math.degrees(math.acos((x2 - x1) / dst))
-    return dst, angle
+    return round(dst, 2), round(angle, 2)
 
 
 def speed(y1, y2, max_y):
     dst = y1 - y2
     if dst > max_y:
         dst = max_y
-    return dst / max_y
+    return round(dst / max_y, 2)
 
 
 class JoystickWidget(tk.Frame):
@@ -145,8 +145,10 @@ class JoystickWidget(tk.Frame):
             self.OnSteeringCenter.fire()
         elif event.type == EventTypes.Motion:
             if event.speed > 0:
-                self.OnThrottleFwd.fire()
+                self.OnThrottleFwd.fire(event.speed)
+            if event.speed < 0:
+                self.OnThrottleBack.fire(event.speed)
             if event.angle > 90:
                 self.OnSteeringLeft.fire()
             else:
-                self.OnSteeringLeft.fire()
+                self.OnSteeringRight.fire()

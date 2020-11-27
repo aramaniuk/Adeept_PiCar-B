@@ -116,20 +116,22 @@ class CarController(object):
         elif event.type == EventTypes.ConnectionError:
             self.on_connection_error.fire(event.status)
         elif event.type == EventTypes.CarSettings:
-            self.on_connection_error.fire(event.settings)
+            self.on_car_settings.fire(event.settings)
         elif event.type == EventTypes.UltraSonicData:
-            self.on_connection_error.fire(event.ultraSonicData)
+            self.on_ultrasonic_data.fire(event.ultraSonicData)
         elif event.type == EventTypes.CarStatus:
-            self.on_connection_error.fire(event.carStatus)
+            self.on_car_status.fire(event.carStatus, event.statusCode)
 
-    def call_forward(self):  # When this function is called,client commands the car to move forward
+    def call_forward(self, speed):  # When this function is called,client commands the car to move forward
         if self.c_f_stu == 0:
-            self.tcpClientSock.send('forward'.encode())
+            command='forward:'+str(speed)
+            self.tcpClientSock.send(command.encode())
             self.c_f_stu = 1
 
-    def call_back(self):  # When this function is called,client commands the car to move backward
+    def call_back(self, speed):  # When this function is called,client commands the car to move backward
         if self.c_b_stu == 0:
-            self.tcpClientSock.send('backward'.encode())
+            command = 'backward:' + str(speed)
+            self.tcpClientSock.send(command.encode())
             self.c_b_stu = 1
 
     def call_stop(self):  # When this function is called,client commands the car to stop moving
@@ -224,7 +226,7 @@ class CarController(object):
 
         for i in range(1, 6):  # Try 5 times if disconnected
             try:
-                if ip_stu == 1:
+                if self.ip_stu == 1:
                     print("Connecting to server @ %s:%d..." % (server_ip, server_port))
                     print("Connecting")
                     self.tcpClientSock.connect(addr)  # Connection with the server
@@ -252,15 +254,15 @@ class CarController(object):
                     break
                 else:
                     break
-            except Exception:
-                print("Cannot connect to server")
+            except Exception as e:
+                print("Cannot connect to server " + str(e))
                 self.fire_events(CarControllerEvent.ConnectionStatus('Trying %d/5 time(s)' % i))
                 print('Trying %d/5 time(s)' % i)
-                ip_stu = 1
+                self.ip_stu = 1
                 self.tcpClientSock.close()
                 time.sleep(1)
                 continue
-        if ip_stu == 1:
+        if self.ip_stu == 1:
             self.fire_events(CarControllerEvent.ConnectionError('Disconnected'))
 
     def code_receive(self):  # A function for data receiving
@@ -269,7 +271,7 @@ class CarController(object):
         while True:
             code_car = self.tcpClientSock.recv(self.BUFSIZ)  # Listening,and save the data in 'code_car'
             # l_ip.config(text=code_car)  # Put the data on the label
-            print("received from car: " + code_car)
+            print("received from car: " + str(code_car))
             if not code_car:
                 continue
             elif 'SET' in str(code_car):  # settings received from car
@@ -288,12 +290,16 @@ class CarController(object):
 
             elif '1' in str(code_car):  # Translate the code to text
                 self.fire_events(CarControllerEvent.CarStatus('Moving Forward', CarStatus.csMoveForward))
+                self.c_f_stu = 0
             elif '2' in str(code_car):  # Translate the code to text
                 self.fire_events(CarControllerEvent.CarStatus('Moving Backward', CarStatus.csMoveBackward))
+                self.c_b_stu = 0
             elif '3' in str(code_car):  # Translate the code to text
                 self.fire_events(CarControllerEvent.CarStatus('Turning Left', CarStatus.csTurnLeft))
+                self.c_l_stu = 0
             elif '4' in str(code_car):  # Translate the code to text
                 self.fire_events(CarControllerEvent.CarStatus('Turning Right', CarStatus.csTurnRight))
+                self.c_r_stu = 0
             elif '5' in str(code_car):  # Translate the code to text
                 self.fire_events(CarControllerEvent.CarStatus('Look Up', CarStatus.csLookUp))
             elif '6' in str(code_car):  # Translate the code to text

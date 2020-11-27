@@ -279,11 +279,11 @@ class MainForm(tk.Frame):
 
 
     ###### Car control joystick events #####
-    def on_car_fwd(self):
-        self.car_controller.call_forward()
+    def on_car_fwd(self, speed):
+        self.car_controller.call_forward(speed)
 
-    def on_car_back(self):
-        self.car_controller.call_back()
+    def on_car_back(self, speed):
+        self.car_controller.call_back(speed)
 
     def on_car_stop(self):
         self.car_controller.call_stop()
