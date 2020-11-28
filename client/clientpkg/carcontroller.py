@@ -1,4 +1,7 @@
 #!/usr/bin/python
+# Controller service sends/receives data, commands, statuses with the car
+# it is middle layer between the client application API and remote car
+
 import time
 import threading as thread
 from socket import socket, AF_INET, SOCK_STREAM
@@ -123,15 +126,15 @@ class CarController(object):
             self.on_car_status.fire(event.carStatus, event.statusCode)
 
     def call_forward(self, speed):  # When this function is called,client commands the car to move forward
-        if self.c_f_stu == 0:
-            #normalize speed
+        if self.c_f_stu == 0 and self.c_b_stu == 0:
+            # normalize speed
             speed = 0.4+0.6*speed
-            command='forward:'+str(speed)
+            command = 'forward:'+str(speed)
             self.tcpClientSock.send(command.encode())
             self.c_f_stu = 1
 
     def call_back(self, speed):  # When this function is called,client commands the car to move backward
-        if self.c_b_stu == 0:
+        if self.c_b_stu == 0 and self.c_f_stu == 0:
             # normalize speed
             speed = 0.4 + 0.6 * speed
             command = 'backward:' + str(speed)
