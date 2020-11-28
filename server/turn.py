@@ -51,11 +51,11 @@ def turn_ang(ang):
         pass
     pwm.set_pwm(2,0,ang)
 
-def right():
-    pwm.set_pwm(2, 0, turn_right_max)
+def right(turn_dst):
+    pwm.set_pwm(2, 0, turn_middle - int(turn_dst * (turn_middle - turn_right_max)))
 
-def left():
-    pwm.set_pwm(2, 0, turn_left_max)
+def left(turn_dst):
+    pwm.set_pwm(2, 0, turn_middle + int(turn_dst*(turn_left_max-turn_middle)))
 
 def middle():
     pwm.set_pwm(2, 0, turn_middle)

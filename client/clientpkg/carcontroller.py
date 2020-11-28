@@ -128,94 +128,100 @@ class CarController(object):
     def call_forward(self, speed):  # When this function is called,client commands the car to move forward
         if self.c_f_stu == 0 and self.c_b_stu == 0:
             # normalize speed
-            speed = 0.4+0.6*speed
-            command = 'forward:'+str(speed)
-            self.tcpClientSock.send(command.encode())
+            fwspeed = round(0.4 + 0.3 * speed, 2)
+            cmd_fwd = 'forward:' + str(fwspeed) + ';'
+            self.tcpClientSock.send(cmd_fwd.encode())
             self.c_f_stu = 1
 
     def call_back(self, speed):  # When this function is called,client commands the car to move backward
         if self.c_b_stu == 0 and self.c_f_stu == 0:
             # normalize speed
-            speed = 0.4 + 0.6 * speed
-            command = 'backward:' + str(speed)
-            self.tcpClientSock.send(command.encode())
+            bkwspeed = round(0.4 + 0.3 * speed, 2)
+            cmd_bkwd = 'backward:' + str(bkwspeed) + ';'
+            self.tcpClientSock.send(cmd_bkwd.encode())
             self.c_b_stu = 1
 
     def call_stop(self):  # When this function is called,client commands the car to stop moving
         self.c_f_stu = 0
         self.c_b_stu = 0
-        self.tcpClientSock.send('stop'.encode())
+        self.tcpClientSock.send('stop;'.encode())
 
     def call_center(self):  # When this function is called,client commands the car go straight
         self.c_r_stu = 0
         self.c_l_stu = 0
-        self.tcpClientSock.send('middle'.encode())
+        self.tcpClientSock.send('middle;'.encode())
 
-    def call_Left(self):  # When this function is called,client commands the car to turn left
+    def call_Left(self, angle):  # When this function is called,client commands the car to turn left
+        assert 90 < angle <= 180  # angle: 90-180 degrees
         if self.c_l_stu == 0:
-            #self.tcpClientSock.send('Left'.encode())
+            rturn_dst = round((angle-90)/90, 2)  # convert angle to the float value between 0-1
+            print("Turn left dst: " + str(rturn_dst) + " angle: " + str(angle))
+            cmd_left = 'Left:' + str(rturn_dst) + ';'
+            self.tcpClientSock.send(cmd_left.encode())
             self.c_l_stu = 1
 
-    def call_Right(self):  # When this function is called,client commands the car to turn right
+    def call_Right(self, angle):  # When this function is called,client commands the car to turn right
+        assert 0 < angle <= 90  # angle: 0-90 degrees
         if self.c_r_stu == 0:
-            #self.tcpClientSock.send('Right'.encode())
+            lturn_dst = round((90 - angle) / 90, 2)  # convert angle to the float value between 0-1
+            print("Turn right dst: " + str(lturn_dst) + " angle: " + str(angle))
+            cmd_right = 'Right:' + str(lturn_dst) + ';'
+            self.tcpClientSock.send(cmd_right.encode())
             self.c_r_stu = 1
 
     def call_look_left(self):  # Camera look left
-        self.tcpClientSock.send('l_le'.encode())
+        self.tcpClientSock.send('l_le;'.encode())
 
     def call_look_right(self):  # Camera look right
-        self.tcpClientSock.send('l_ri'.encode())
+        self.tcpClientSock.send('l_ri;'.encode())
 
     def call_look_up(self):  # Camera look up
-        self.tcpClientSock.send('l_up'.encode())
+        self.tcpClientSock.send('l_up;'.encode())
 
     def call_look_down(self):  # Camera look down
-        self.tcpClientSock.send('l_do'.encode())
+        self.tcpClientSock.send('l_do;'.encode())
 
     def call_ahead(self):  # Camera look ahead
-        self.tcpClientSock.send('ahead'.encode())
-        print('ahead')
+        self.tcpClientSock.send('ahead;'.encode())
 
     def call_auto(self):  # When this function is called,client commands the car to start auto mode
         if self.auto_status == 0:
-            self.tcpClientSock.send('auto'.encode())
+            self.tcpClientSock.send('auto;'.encode())
         else:
-            self.tcpClientSock.send('Stop'.encode())
+            self.tcpClientSock.send('Stop;'.encode())
 
     def call_exit(self):  # When this function is called,client commands the car to shut down
-        self.tcpClientSock.send('exit'.encode())
+        self.tcpClientSock.send('exit;'.encode())
 
     def call_Stop(self):  # When this function is called,client commands the car to switch off auto mode
-        self.tcpClientSock.send('Stop'.encode())
+        self.tcpClientSock.send('Stop;'.encode())
 
     def scan(self):  # When this function is called,client commands the ultrasonic to scan
-        self.tcpClientSock.send('scan'.encode())
-        print('scan')
+        self.tcpClientSock.send('scan;'.encode())
 
     def find_line(self):  # Line follow mode
         if self.findline_status == 0:
-            self.tcpClientSock.send('findline'.encode())
+            self.tcpClientSock.send('findline;'.encode())
         else:
-            self.tcpClientSock.send('Stop'.encode())
+            self.tcpClientSock.send('Stop;'.encode())
 
     def lights_ON(self):  # Turn on the LEDs
         if self.led_status == 0:
-            self.tcpClientSock.send('lightsON'.encode())
+            self.tcpClientSock.send('lightsON;'.encode())
         else:
-            self.tcpClientSock.send('lightsOFF'.encode())
+            self.tcpClientSock.send('lightsOFF;'.encode())
 
     def call_SR3(self):  # Start speech recognition mode
         if self.speech_status == 0:
-            self.tcpClientSock.send('voice_3'.encode())
+            self.tcpClientSock.send('voice_3;'.encode())
         else:
-            self.tcpClientSock.send('Stop'.encode())
+            self.tcpClientSock.send('Stop;'.encode())
 
     def call_opencv(self):  # Start OpenCV mode
         if self.opencv_status == 0:
-            self.tcpClientSock.send('opencv'.encode())
+            self.tcpClientSock.send('opencv;'.encode())
         else:
-            self.tcpClientSock.send('Stop'.encode())
+            self.tcpClientSock.send('Stop;'.encode())
 
     def socket_disconnect(self):
         print("socket disconnect")

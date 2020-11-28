@@ -288,11 +288,11 @@ class MainForm(tk.Frame):
     def on_car_stop(self):
         self.car_controller.call_stop()
 
-    def on_car_left(self):
-        self.car_controller.call_Left()
+    def on_car_left(self, angle):
+        self.car_controller.call_Left(angle)
 
-    def on_car_right(self):
-        self.car_controller.call_Right()
+    def on_car_right(self, angle):
+        self.car_controller.call_Right(angle)
 
     def on_car_center(self):
         self.car_controller.call_center()

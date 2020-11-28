@@ -152,6 +152,6 @@ class JoystickWidget(tk.Frame):
             if event.speed < 0:
                 self.OnThrottleBack.fire(-event.speed)
             if event.angle > 90:
-                self.OnSteeringLeft.fire()
+                self.OnSteeringLeft.fire(event.angle)
             else:
-                self.OnSteeringRight.fire()
+                self.OnSteeringRight.fire(event.angle)
