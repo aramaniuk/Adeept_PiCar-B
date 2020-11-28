@@ -33,8 +33,11 @@ def distance(x1, y1, x2, y2):
 
 def speed(y1, y2, max_y):
     dst = y1 - y2
-    if dst > max_y:
-        dst = max_y
+    if abs(dst) > max_y:
+        if dst > 0:
+            dst = max_y
+        elif dst < 0:
+            dst = -max_y
     return round(dst / max_y, 2)
 
 
@@ -147,7 +150,7 @@ class JoystickWidget(tk.Frame):
             if event.speed > 0:
                 self.OnThrottleFwd.fire(event.speed)
             if event.speed < 0:
-                self.OnThrottleBack.fire(event.speed)
+                self.OnThrottleBack.fire(-event.speed)
             if event.angle > 90:
                 self.OnSteeringLeft.fire()
             else:

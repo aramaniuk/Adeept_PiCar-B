@@ -124,12 +124,16 @@ class CarController(object):
 
     def call_forward(self, speed):  # When this function is called,client commands the car to move forward
         if self.c_f_stu == 0:
+            #normalize speed
+            speed = 0.4+0.6*speed
             command='forward:'+str(speed)
             self.tcpClientSock.send(command.encode())
             self.c_f_stu = 1
 
     def call_back(self, speed):  # When this function is called,client commands the car to move backward
         if self.c_b_stu == 0:
+            # normalize speed
+            speed = 0.4 + 0.6 * speed
             command = 'backward:' + str(speed)
             self.tcpClientSock.send(command.encode())
             self.c_b_stu = 1
@@ -146,12 +150,12 @@ class CarController(object):
 
     def call_Left(self):  # When this function is called,client commands the car to turn left
         if self.c_l_stu == 0:
-            self.tcpClientSock.send('Left'.encode())
+            #self.tcpClientSock.send('Left'.encode())
             self.c_l_stu = 1
 
     def call_Right(self):  # When this function is called,client commands the car to turn right
         if self.c_r_stu == 0:
-            self.tcpClientSock.send('Right'.encode())
+            #self.tcpClientSock.send('Right'.encode())
             self.c_r_stu = 1
 
     def call_look_left(self):  # Camera look left

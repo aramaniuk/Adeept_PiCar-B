@@ -1,5 +1,6 @@
 #!/usr/bin/python
-
+# Eventhook is used internally in the application to connect services,
+# network events with UI and other application logic
 
 class EventHook(object):
     def __init__(self):

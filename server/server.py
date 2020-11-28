@@ -588,6 +588,8 @@ def run():                   #Main loop
         
         elif 'backward' in data:               #When server receive "backward" from client,car moves backward
             tcpCliSock.send('2'.encode())
+            spd_ad = float((str(data))[9:])  # Speed Adjustment
+            print("backward:speed_ad " + str(spd_ad))
             motor.motor_left(status, backward, left_spd*spd_ad)
             motor.motor_right(status, forward, right_spd*spd_ad)
             colorWipe(strip, Color(255,0,0))
